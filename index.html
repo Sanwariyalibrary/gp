@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voter PDF → Excel Converter</title>
+<title>Voter PDF → Excel Converter (Proper Columns)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -19,14 +19,18 @@ h1{color:#075e36;margin-bottom:10px;font-size:26px;}
 .upload-area .icon{font-size:70px;margin-bottom:15px;}
 .upload-area h2{color:#075e36;margin-bottom:10px;}
 .upload-area p{color:#66736b;font-size:14px;}
-.btn{background:#087b40;color:white;border:0;padding:13px 22px;border-radius:9px;cursor:pointer;margin:8px 5px 0 0;font-size:15px;font-weight:600;}
-.btn:hover{background:#075e36;}
+.btn{background:#087b40;color:white;border:0;padding:13px 22px;border-radius:9px;cursor:pointer;margin:8px 5px 0 0;font-size:15px;font-weight:600;transition:all 0.2s;}
+.btn:hover{background:#075e36;transform:translateY(-2px);}
 .btn.blue{background:#1976d2;}
 .btn.blue:hover{background:#1565c0;}
 .btn.purple{background:#7b1fa2;}
 .btn.purple:hover{background:#6a1b9a;}
 .btn.red{background:#c62828;}
+.btn.red:hover{background:#b71c1c;}
+.btn.orange{background:#e65100;}
+.btn.orange:hover{background:#bf360c;}
 .btn.secondary{background:#e8f4ed;color:#075e36;}
+.btn.secondary:hover{background:#d9f2e3;}
 .btn:disabled{background:#ccc;cursor:not-allowed;}
 .progress-bar{width:100%;height:25px;background:#e0e8e3;border-radius:12px;overflow:hidden;margin:20px 0;display:none;}
 .progress-bar.show{display:block;}
@@ -37,6 +41,9 @@ h1{color:#075e36;margin-bottom:10px;font-size:26px;}
 .status.warning{background:#fff8e1;color:#e69b00;}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0;}
 .stat-box{background:linear-gradient(135deg,#075e36,#10a95b);color:white;padding:18px;border-radius:12px;text-align:center;}
+.stat-box.blue{background:linear-gradient(135deg,#1565c0,#1976d2);}
+.stat-box.purple{background:linear-gradient(135deg,#6a1b9a,#7b1fa2);}
+.stat-box.orange{background:linear-gradient(135deg,#e65100,#ff9800);}
 .stat-box .num{font-size:32px;font-weight:bold;}
 .stat-box .lbl{font-size:13px;opacity:0.9;margin-top:5px;}
 .table-container{max-height:600px;overflow:auto;border:1px solid #ddd;border-radius:10px;margin-top:15px;}
@@ -47,6 +54,7 @@ tr:nth-child(even){background:#f9fdfb;}
 tr:hover{background:#e8f4ed;}
 .badge{padding:4px 10px;border-radius:20px;background:#e8f5ed;color:#087b40;font-size:11px;font-weight:600;}
 .badge.epic{background:#fff3e0;color:#e65100;font-family:monospace;}
+.badge.ward{background:#e3f2fd;color:#1565c0;}
 .column-info{background:#f0faf4;padding:18px;border-radius:12px;border-left:5px solid #10a95b;margin:15px 0;}
 .column-info h4{color:#075e36;margin-bottom:12px;}
 .column-info .col{display:inline-block;padding:6px 14px;background:white;border-radius:20px;margin:4px;font-size:13px;border:1px solid #c8e6d4;}
@@ -62,20 +70,38 @@ tr:hover{background:#e8f4ed;}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
 .help{background:#e3f2fd;padding:15px;border-radius:10px;margin-top:15px;border-left:4px solid #1976d2;font-size:13px;line-height:1.6;}
 .help strong{color:#1565c0;}
+.info-box{background:#fff8e1;padding:15px;border-radius:10px;margin-top:15px;border-left:4px solid #e69b00;font-size:13px;line-height:1.6;}
+.info-box strong{color:#e65100;}
+.ward-chips{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0;}
+.ward-chip{padding:8px 16px;background:#e8f4ed;color:#075e36;border-radius:20px;font-weight:600;font-size:13px;border:2px solid #10a95b;cursor:pointer;transition:all 0.2s;}
+.ward-chip:hover{background:#075e36;color:white;}
+.ward-chip.active{background:#075e36;color:white;}
+.ward-chip .count{background:rgba(255,255,255,0.3);padding:2px 8px;border-radius:10px;margin-left:6px;font-size:11px;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:15px 0;padding:15px;background:#f9fdfb;border-radius:10px;border:1px solid #e0e8e3;}
+.filter-bar label{font-size:13px;font-weight:600;color:#075e36;}
+.filter-bar input, .filter-bar select{padding:8px 12px;border:1px solid #c8e6d4;border-radius:8px;font-size:13px;font-family:inherit;}
+.filter-bar input:focus, .filter-bar select:focus{outline:none;border-color:#10a95b;box-shadow:0 0 0 3px rgba(16,169,91,0.1);}
+.steps{background:#f0faf4;padding:20px;border-radius:12px;margin:15px 0;border-left:5px solid #10a95b;}
+.steps h4{color:#075e36;margin-bottom:15px;font-size:16px;}
+.steps ol{margin-left:20px;line-height:2;}
+.steps li{color:#17231b;font-size:14px;}
+.steps code{background:#fff;padding:3px 8px;border-radius:5px;color:#c62828;font-weight:600;font-size:13px;}
+.footer{text-align:center;color:#66736b;font-size:12px;margin-top:30px;padding:20px;}
 </style>
 </head>
 <body>
 <div class="container">
 
 <h1>📄 Voter PDF → Excel Converter</h1>
-<p class="sub">पंचायत चुनाव निर्वाचक नामावली PDF को Excel में बदलें (Column-wise)</p>
+<p class="sub">पंचायत चुनाव निर्वाचक नामावली PDF को Excel में बदलें — Row & Column अलग-अलग | सामली पठार (Ward 1-7)</p>
 
+<!-- ============ UPLOAD PANEL ============ -->
 <div class="panel">
 <div class="upload-area" id="uploadArea">
 <div class="icon">📄</div>
 <h2>PDF File यहाँ Drop करें</h2>
-<p>या click करके select करें</p>
-<input type="file" id="pdfFileInput" accept=".pdf" style="display:none;">
+<p>या click करके select करें (एक साथ सभी 7 Wards की PDF)</p>
+<input type="file" id="pdfFileInput" accept=".pdf" multiple style="display:none;">
 </div>
 
 <div class="progress-bar" id="progressBar">
@@ -86,25 +112,61 @@ tr:hover{background:#e8f4ed;}
 
 <div class="help">
 <strong>📌 Supported PDF Format:</strong><br>
-✅ पंचायत चुनाव निर्वाचक नामावली (Voter List)<br>
+✅ पंचायत चुनाव निर्वाचक नामावली (Voter List) — राजस्थान 2026<br>
 ✅ Format: Box Number + EPIC ID + Photo + नाम + पिता/पति + मकान + आयु + लिंग<br>
-✅ Digital PDF (text-based) — Scanned PDF काम नहीं करेगा
+✅ Digital PDF (text-based) — Scanned PDF काम नहीं करेगा<br>
+✅ एक साथ सभी 7 Wards की PDF upload कर सकते हैं
 </div>
 </div>
 
+<!-- ============ SAMPLE DATA PANEL ============ -->
+<div class="panel">
+<h2 style="color:#075e36;margin-bottom:15px;">⚡ Sample Data (बिना PDF के test करें)</h2>
+<p style="color:#66736b;font-size:14px;margin-bottom:15px;">सभी 7 Wards का demo data — proper row & column format में Excel download करें:</p>
+<div class="actions">
+<button class="btn purple" onclick="downloadSampleExcel()">📥 Sample Excel (Proper Columns)</button>
+<button class="btn orange" onclick="downloadSampleWardWise()">📊 Sample Ward-wise Excel</button>
+<button class="btn secondary" onclick="downloadSampleCSV()">📄 Sample CSV</button>
+</div>
+</div>
+
+<!-- ============ RESULT PANEL ============ -->
 <div class="panel" id="resultPanel" style="display:none;">
 <h2 style="color:#075e36;margin-bottom:15px;">📊 Extraction Result</h2>
 <div class="stats" id="stats"></div>
 
 <div class="column-info" id="columnInfo"></div>
 
+<!-- Ward Filter Chips -->
+<div id="wardFilterContainer" style="display:none;">
+<h4 style="color:#075e36;margin-bottom:10px;">🏘️ Ward-wise Filter:</h4>
+<div class="ward-chips" id="wardChips"></div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="filter-bar">
+<label>🔍 खोजें:</label>
+<input type="text" id="searchInput" placeholder="नाम, EPIC, पिता/पति..." style="flex:1;min-width:200px;">
+<label>लिंग:</label>
+<select id="genderFilter">
+<option value="">सभी</option>
+<option value="पुरुष">पुरुष</option>
+<option value="महिला">महिला</option>
+</select>
+<label>वार्ड:</label>
+<select id="wardSelect">
+<option value="">सभी Wards</option>
+</select>
+</div>
+
 <div class="actions">
-<button class="btn blue" onclick="downloadExcel()">📥 Excel Download (.xlsx)</button>
+<button class="btn blue" onclick="downloadExcel()">📥 Excel Download (Proper Columns)</button>
+<button class="btn orange" onclick="downloadWardWiseExcel()">📊 Ward-wise Excel (अलग-अलग Sheets)</button>
 <button class="btn secondary" onclick="downloadCSV()">📄 CSV Download</button>
 <button class="btn red" onclick="clearAll()">❌ Clear</button>
 </div>
 
-<h3 style="color:#075e36;margin:20px 0 10px;">👁️ Preview (First 50 rows)</h3>
+<h3 style="color:#075e36;margin:20px 0 10px;">👁️ Preview (First 100 rows)</h3>
 <div class="table-container">
 <table id="previewTable">
 <thead>
@@ -123,6 +185,27 @@ tr:hover{background:#e8f4ed;}
 <tbody id="previewBody"></tbody>
 </table>
 </div>
+</div>
+
+<!-- ============ HOW TO USE ============ -->
+<div class="panel">
+<div class="steps">
+<h4>📖 Excel में Row & Column अलग-अलग कैसे आएंगे?</h4>
+<ol>
+<li>PDF upload करें या Sample data button दबाएं</li>
+<li><strong>📥 Excel Download (Proper Columns)</strong> button दबाएं</li>
+<li>Excel file open करें — हर field की <strong>अलग column</strong> होगी:
+<br><code>A = क्र.सं.</code> <code>B = EPIC ID</code> <code>C = नाम</code> <code>D = पिता/पति</code> <code>E = मकान</code> <code>F = आयु</code> <code>G = लिंग</code> <code>H = वार्ड</code> <code>I = गाँव</code> <code>J = मोबाइल</code>
+</li>
+<li>हर voter की <strong>अलग row</strong> होगी</li>
+<li>Ward-wise sheets चाहिए तो <strong>📊 Ward-wise Excel</strong> button दबाएं — हर Ward की अलग sheet बनेगी</li>
+</ol>
+</div>
+</div>
+
+<div class="footer">
+राज्य निर्वाचन आयोग, राजस्थान | पंचायत चुनाव निर्वाचक नामावली 2026<br>
+सामली पठार — Ward 1 से 7 | Total Voters: ~2339
 </div>
 
 </div>
@@ -145,9 +228,325 @@ const resultPanel = document.getElementById('resultPanel');
 const statsEl = document.getElementById('stats');
 const columnInfo = document.getElementById('columnInfo');
 const previewBody = document.getElementById('previewBody');
+const searchInput = document.getElementById('searchInput');
+const genderFilter = document.getElementById('genderFilter');
+const wardSelect = document.getElementById('wardSelect');
+const wardChips = document.getElementById('wardChips');
+const wardFilterContainer = document.getElementById('wardFilterContainer');
 
+// ============================================================
+// STATE
+// ============================================================
 let extractedVoters = [];
-let pdfMeta = {};
+let pdfMeta = { ward: '1', village: 'सामली पठार' };
+let activeWardFilter = 'all';
+
+// ============================================================
+// COLUMN DEFINITIONS (Excel के columns)
+// ============================================================
+const COLUMNS = [
+    { key: 'sr',     label: 'क्र.सं.',         width: 7  },
+    { key: 'epic',   label: 'EPIC ID',          width: 18 },
+    { key: 'name',   label: 'नाम',              width: 28 },
+    { key: 'father', label: 'पिता/पति का नाम',   width: 28 },
+    { key: 'house',  label: 'मकान संख्या',       width: 12 },
+    { key: 'age',    label: 'आयु',              width: 7  },
+    { key: 'gender', label: 'लिंग',             width: 10 },
+    { key: 'ward',   label: 'वार्ड',             width: 8  },
+    { key: 'village',label: 'गाँव',              width: 20 },
+    { key: 'mobile', label: 'मोबाइल नंबर',       width: 15 }
+];
+
+// ============================================================
+// SAMPLE DATA (सभी 7 Wards का demo data)
+// ============================================================
+const SAMPLE_VOTERS = [
+// ===== WARD 1 =====
+{epic:'TAO1253897',name:'राम लाल',father:'माझीरा बी मीमा',house:'01',age:'52',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1253921',name:'रामली बाई',father:'राम लाल',house:'01',age:'50',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0227579',name:'धनेश्वर',father:'माझीरा',house:'1',age:'36',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0227587',name:'तुलसी',father:'धनेश्वर',house:'1',age:'35',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1312255',name:'गीता कुमारी मीमा',father:'राम लाल मीमा',house:'1',age:'23',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1511567',name:'शांति कुमारी मीमा',father:'राम लाल मीमां',house:'01',age:'21',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1579390',name:'राधा कुमारी मीमा',father:'प्रश्नराज',house:'01',age:'20',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012232',name:'मगवती',father:'मगवती',house:'3',age:'62',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012233',name:'नंदुनी',father:'प्रश्नराज',house:'3',age:'62',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0990630',name:'मेरकी',father:'रामलाल',house:'',age:'31',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0349662',name:'सिवलाल',father:'मनवती',house:'3',age:'30',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0740332',name:'कन्हैयालाल',father:'मनवती',house:'3',age:'30',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0766071',name:'रेखा',father:'सिवलाल',house:'3',age:'28',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0990531',name:'गणेश लाल',father:'मनवती लाल',house:'26',age:'26',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1434240',name:'शारदा कुमारी',father:'गणेश लाल',house:'03',age:'24',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1254127',name:'सविता',father:'कन्हैया लाल',house:'03',age:'24',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012506',name:'रकमा',father:'देवेबी',house:'4',age:'60',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012507',name:'हिंकी',father:'रकमा',house:'4',age:'60',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012518',name:'कुलचन्द',father:'मनवती',house:'4',age:'59',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1697705',name:'कैलास',father:'मनवती',house:'4',age:'40',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0604348',name:'काली',father:'कैलास',house:'4',age:'39',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0334243',name:'रामलाल',father:'रमलाल',house:'4',age:'36',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0999473',name:'नाभुलाल',father:'मनवती',house:'4',age:'36',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0740365',name:'प्रेमवाई',father:'रमलाल',house:'4',age:'36',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00561449',name:'नारणी',father:'नाथूलाल',house:'4',age:'35',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740340',name:'ईश्वरलाल',father:'नारायकमा',house:'4',age:'32',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00550079',name:'बालु राम',father:'पुरुष',house:'4',age:'31',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740357',name:'पारस्मल',father:'पुरुष',house:'4',age:'30',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01592625',name:'पिंकी कुमारी मीणा',father:'पारस्मल मीणा',house:'4',age:'29',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012219',name:'गोरखन',father:'नामसाङ',house:'5',age:'62',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012220',name:'केशरी',father:'गोरखन',house:'5',age:'60',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012323',name:'धनराज',father:'नामसेवकी',house:'6',age:'57',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012213',name:'सीता',father:'धनराज',house:'6',age:'56',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00550087',name:'गौतम लाल मीना',father:'नामस्वराज',house:'6',age:'31',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01706860',name:'संतोष कुमारी मीना',father:'गौतम लाल मीना मंदिरी',house:'06',age:'30',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00766089',name:'नारायणलाल',father:'धनराज',house:'6',age:'28',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01079912',name:'कमला शंकर',father:'नामस्वराज मीना',house:'06',age:'25',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01434232',name:'गंगा कुमारी मीणा',father:'नामस्वराज',house:'6',age:'22',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012503',name:'जमना',father:'मेचकी',house:'7',age:'87',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01311950',name:'पार्वती मीणा',father:'पूर्व मंद मीणा',house:'7',age:'29',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012819',name:'देवी लाल',father:'नामसुखी',house:'9',age:'62',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012333',name:'केशरी',father:'देवी लाल',house:'9',age:'60',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012335',name:'नायुराम',father:'नामसुखी',house:'9',age:'57',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012502',name:'सवारी',father:'नायुराम',house:'9',age:'55',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1911908',name:'सुगना',father:'देवी लाल',house:'9',age:'55',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740373',name:'सीमा कुमारी',father:'नामसुखाल',house:'9',age:'34',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00550095',name:'शंकरलाल',father:'नामसुखी',house:'9',age:'34',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00594663',name:'लालचन्द',father:'नामसुखाल',house:'9',age:'31',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00766097',name:'पिन्हुलाल',father:'नामसुखी',house:'9',age:'28',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01012475',name:'विष्णु लाल',father:'नामसुखाल मीना',house:'9',age:'26',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01402684',name:'लाली कुमारी मीना शंकर',father:'कुलकुमारी शंकर लाल मीना',house:'9',age:'26',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012227',name:'गोतम',father:'चोखा',house:'10',age:'62',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012228',name:'बची',father:'गोतम',house:'10',age:'60',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740381',name:'रामलाल',father:'गोतम लाल',house:'10',age:'30',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01385491',name:'काली मीना लक्ष्मण लाल',father:'गोतम मीना',house:'10',age:'23',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01655646',name:'लाली कुमारी मीना',father:'गोतम लाल',house:'10',age:'21',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1473727',name:'विजय लाल',father:'गोतम',house:'14',age:'57',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012521',name:'धापुडी',father:'विजय लाल',house:'14',age:'54',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00898921',name:'नवीन',father:'विजय लाल',house:'14',age:'26',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01360775',name:'भूत्की मीना',father:'नवीन मीना',house:'14',age:'24',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012515',name:'शुक्ली',father:'फुलिया',house:'15',age:'57',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012511',name:'लक्ष्मण',father:'कालू',house:'15',age:'57',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012512',name:'बरखा',father:'लक्ष्मण',house:'15',age:'54',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00550103',name:'जीवन लाल मीना',father:'लक्ष्मण लाल',house:'15',age:'34',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740399',name:'मेहम कुमार',father:'लक्ष्मणलाल',house:'15',age:'32',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01084243',name:'लाहू कुमारी मीना',father:'जीवन लाल',house:'15',age:'29',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012510',name:'देवेन्द्र',father:'कालू',house:'16',age:'64',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012231',name:'लीला',father:'देवेन्द्र',house:'16',age:'62',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01459270',name:'प्रकाश चंद्र मीना',father:'देवेन्द्र',house:'16',age:'21',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00561472',name:'शंकरनाथ',father:'लालनाथ',house:'17',age:'64',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012516',name:'नारायण लाल',father:'कालू',house:'17',age:'54',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012315',name:'जमना',father:'नारायण लाल',house:'17',age:'53',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA00740423',name:'हुलचंद',father:'नारायणलाल',house:'17',age:'31',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01254788',name:'राजू लाल',father:'नारायण लाल मीना',house:'17',age:'24',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01459791',name:'कृष्ण गोपाल मीना',father:'नारायण लाल मीना',house:'17',age:'21',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012508',name:'धनकी',father:'कालू',house:'18',age:'107',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1911957',name:'मोतदी',father:'वक्या राम',house:'18',age:'62',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TA01081215',name:'गणेशलाल',father:'कालू',house:'18',age:'28',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1081223',name:'लिलता कुमारी',father:'गणेश लाल',house:'18',age:'27',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012191',name:'गंगाराम',father:'कालू',house:'19',age:'70',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012804',name:'धर्म',father:'गंगाराम',house:'19',age:'67',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1911940',name:'गोती',father:'गोतमलाल',house:'19',age:'40',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1697721',name:'गौतम लाल',father:'गाड्युराम',house:'19',age:'40',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0099424',name:'गंगा',father:'नायूलाल',house:'19',age:'36',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0099432',name:'भागवंती',father:'गौतमलाल',house:'19',age:'36',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0099416',name:'नायुलाल',father:'गाड्युराम',house:'19',age:'36',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1446814',name:'रीन कुमारी मीणा',father:'गोतम लाल मीणा',house:'19',age:'21',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1618982',name:'राजकुमार मीना',father:'गौतम लाल',house:'19',age:'19',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012055',name:'भेरा',father:'गाड्युराम',house:'24',age:'72',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0297820',name:'श्रीरजमल',father:'भेरा',house:'24',age:'49',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0297838',name:'युवती',father:'श्रीरजमल',house:'24',age:'41',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1084185',name:'देवीलाल',father:'श्रीरजी',house:'24',age:'30',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1254440',name:'इन्द्रा मीणा',father:'नंद लाल मीणा',house:'24',age:'25',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1254481',name:'आभा कुमारी मीणा',father:'देवी लाल मीणा',house:'24',age:'24',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1254333',name:'नंद लाल मीणा',father:'श्रीरज मल',house:'24',age:'24',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1579606',name:'रखमा कुमारी द्विरजी',father:'श्रीरजी',house:'24',age:'20',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1602309',name:'रथामा कुमारी मीणा',father:'श्रीरज',house:'24',age:'19',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012523',name:'मानीया',father:'भेरा',house:'29',age:'77',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/012253',name:'देवली',father:'मानीया',house:'29',age:'74',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1697796',name:'कालुराम',father:'मानिया',house:'29',age:'45',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'FQS1911775',name:'दुर्गा बाई',father:'कालुराम',house:'29',age:'43',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0990051',name:'राम चन्द्र',father:'मानीया',house:'29',age:'37',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO0862151',name:'परिवाराई',father:'रामचन्द',house:'29',age:'36',gender:'महिला',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1312032',name:'बयन कुमारी मीणा',father:'कालू राम मीणा',house:'29',age:'23',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+{epic:'TAO1444694',name:'दशरथ मीना कार लाल',father:'कालू लाल',house:'29',age:'21',gender:'पुरुष',ward:'1',village:'सामली पठार',mobile:''},
+// ===== WARD 2 =====
+{epic:'RJ/17/127/012553',name:'नाथु लाल',father:'क्रचू',house:'22',age:'65',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012046',name:'भगवती',father:'क्रचू',house:'22',age:'62',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012158',name:'नाथी',father:'नाथु लाल',house:'22',age:'60',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012155',name:'देवली',father:'भगवती',house:'22',age:'60',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697754',name:'पुष्कर',father:'प्रमुखाल',house:'22',age:'44',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697762',name:'प्रमीला',father:'पुष्कर',house:'22',age:'42',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697739',name:'बद्रीलाल',father:'प्रमुखाल',house:'22',age:'41',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697747',name:'दरिया',father:'बद्रीलाल',house:'22',age:'40',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1911809',name:'बाबुलाल',father:'प्रमुखाल',house:'22',age:'40',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1911817',name:'देवीलाल',father:'प्रमुखाल',house:'22',age:'38',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00550111',name:'अमृतलाल',father:'मनवती',house:'22',age:'37',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00550137',name:'मांगु कुमारी मीना बाबुलाल',father:'बाबुलाल',house:'22',age:'36',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00550145',name:'शान्ति',father:'देवीलाल',house:'22',age:'35',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00550129',name:'शंकरी',father:'अमृतलाल',house:'22',age:'33',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00989988',name:'पारसी',father:'मनवती',house:'22',age:'28',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA00990028',name:'बातुराम',father:'मनवती लाल',house:'22',age:'26',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA01388321',name:'सावरी मीणा बड़ी लाल',father:'मद्री लाल मीना',house:'22',age:'24',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA01402866',name:'मूली कुमारी मीना बातुराम',father:'बातुराम',house:'22',age:'24',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA01624873',name:'सिवलाल मीना',father:'मद्रीलाल',house:'22',age:'19',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TA01603240',name:'ईश्वर लाल',father:'मुखर',house:'22',age:'19',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012295',name:'जीवा',father:'मनवती',house:'25',age:'69',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012544',name:'केरकी',father:'जीवा',house:'25',age:'67',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697770',name:'शंकर लाल',father:'जीवा',house:'25',age:'63',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697788',name:'चोखी',father:'शंकर',house:'25',age:'59',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0633941',name:'कमलावाई',father:'देवीलाल',house:'25',age:'40',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0011874',name:'देवीलाल',father:'जीवा',house:'25',age:'38',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0020404',name:'केशूराम मीणा',father:'जीवा',house:'25',age:'36',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1081264',name:'देवली बाई मीणा',father:'केशूराम',house:'25',age:'34',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0740431',name:'सुनना',father:'देवीलाल',house:'25',age:'33',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1446889',name:'दिनेश कुमार मीना शंकर',father:'केशूराम मीणा',house:'25',age:'21',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012550',name:'धनकी',father:'देवा',house:'27',age:'60',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0550152',name:'शंकरलाल',father:'देवीलाल',house:'27',age:'32',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0550160',name:'ममता',father:'शंकरलाल',house:'27',age:'30',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012842',name:'रामली',father:'अमरा',house:'28',age:'62',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012539',name:'मेरा',father:'अम्बावा',house:'28',age:'57',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0766105',name:'शंकर',father:'मैकुलाल',house:'28',age:'36',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO0740449',name:'गुड्डी',father:'शूरोकर लाल',house:'28',age:'35',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1392422',name:'नायुलाल मीना',father:'मेकुलाल मीना',house:'28',age:'24',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012379',name:'मगदु',father:'अम्बावा',house:'31',age:'82',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012538',name:'बगदी',father:'मेरा',house:'31',age:'54',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012377',name:'रामा',father:'अम्बाला',house:'32',age:'67',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'RJ/17/127/012540',name:'कालकी',father:'रामा',house:'32',age:'62',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1773134',name:'प्रेमचन्द',father:'रामा',house:'32',age:'41',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1084193',name:'शांति बाई',father:'प्रेमचंद',house:'32',age:'38',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1004290',name:'प्रकाश मीणा',father:'रामा',house:'32',age:'35',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1081231',name:'नराणी बाई',father:'पपू लाल',house:'32',age:'27',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1127158',name:'पपू लाल',father:'रामा मीना',house:'32',age:'26',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1569003',name:'पूजा कुमारी मीणा',father:'देवी लाल मीणा',house:'32',age:'21',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+{epic:'TAO1568997',name:'देवी लाल',father:'प्रेम चंद',house:'32',age:'20',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697804',name:'सुन्दर लाल',father:'प्रेमचंद',house:'34',age:'42',gender:'पुरुष',ward:'2',village:'राणपुर',mobile:''},
+{epic:'FQS1697812',name:'नाराणी',father:'सुन्दर',house:'34',age:'40',gender:'महिला',ward:'2',village:'राणपुर',mobile:''},
+// ===== WARD 3 =====
+{epic:'RJ/17/127/015475',name:'गोतम',father:'सुविधा',house:'1',age:'87',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015001',name:'मेरू',father:'गोतम',house:'1',age:'60',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015609',name:'बावरी',father:'मेरू',house:'1',age:'56',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'FQS1473925',name:'हीरालाल मीणा',father:'गोतम',house:'1',age:'40',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1087709',name:'शाली बाई मीणा',father:'हीरा',house:'01',age:'36',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0991042',name:'बावुराम',father:'मेरू',house:'1',age:'27',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1334507',name:'लक्ष्मी मीणा',father:'बावुराम मीणा',house:'01',age:'25',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1714559',name:'काली कुमारी',father:'कालुराम मीणा',house:'01',age:'24',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015753',name:'रामा',father:'गोतम',house:'2',age:'64',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015490',name:'बावरी',father:'रामा',house:'2',age:'62',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1088053',name:'रामलिमीना',father:'प्रकाशनीना',house:'02',age:'36',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0766659',name:'द्विवराल',father:'रामा',house:'2',age:'30',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0766683',name:'अयुरी',father:'भवरलाल',house:'2',age:'29',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0766675',name:'भवरलाल',father:'रामा',house:'2',age:'29',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0766667',name:'कान्ता',father:'द्विवराल',house:'2',age:'29',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1086677',name:'विवय लाल',father:'राम लाल',house:'02',age:'27',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1334762',name:'कमली मीणा',father:'विवय लाल',house:'02',age:'24',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015229',name:'केशिया',father:'गोतम',house:'4',age:'56',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015714',name:'केशरी',father:'केशिया',house:'4',age:'51',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1312065',name:'अतिता कुमारी मीणा',father:'लालुराम',house:'4',age:'31',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1087691',name:'ओकार लाल',father:'मेरू राम',house:'04',age:'27',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO0991059',name:'लालू राम',father:'मेकिया',house:'4',age:'26',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1569029',name:'देव कुमारी मीणा',father:'ओकार लाल मीणा',house:'4',age:'24',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TAO1569011',name:'सुरज मीना',father:'मेकूराम मीना',house:'4',age:'20',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015368',name:'पंचिया',father:'साङ',house:'5',age:'77',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015366',name:'रतुडी',father:'पंचिया',house:'5',age:'72',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'FQS1801935',name:'सुरजमल',father:'साँचिया',house:'5',age:'40',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'FQS1801943',name:'हीरकी',father:'सुरजमल',house:'5',age:'39',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015015',name:'कालू',father:'रामा',house:'6',age:'77',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015732',name:'शुल्की',father:'कालू',house:'6',age:'72',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015481',name:'मेघा',father:'कालू',house:'6',age:'54',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015485',name:'गीता',father:'मेघा',house:'6',age:'52',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'FQS1473933',name:'नायू',father:'कालू',house:'6',age:'40',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TA00292326',name:'कचरी',father:'नायू',house:'6',age:'39',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015354',name:'देवली',father:'चोखा',house:'7',age:'87',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TA00292334',name:'अमरा',father:'चोखा',house:'7',age:'39',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TA00200083',name:'जीवली',father:'अमरा',house:'7',age:'38',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015274',name:'हुरजी',father:'चोखा',house:'8',age:'62',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'RJ/17/127/015355',name:'हुन्ना',father:'हुरजी',house:'8',age:'59',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TA01692870',name:'गोती बाई',father:'हेबर',house:'8',age:'34',gender:'महिला',ward:'3',village:'पीपलाबोरी',mobile:''},
+{epic:'TA00428037',name:'हेबर लाल',father:'हुरजी',house:'8',age:'30',gender:'पुरुष',ward:'3',village:'पीपलाबोरी',mobile:''},
+// ===== WARD 4 =====
+{epic:'TAO1253434',name:'भीवन लाल',father:'क्रकू मीणा',house:'0',age:'47',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253475',name:'सांतिबाई',father:'भीवन लाल मीणा',house:'0',age:'45',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253772',name:'सुन्दर बाई',father:'कैलास चंद्र मीणा',house:'0',age:'27',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1422468',name:'प्रेम',father:'कारुलाल',house:'0',age:'25',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253616',name:'नमू लाल मीणा',father:'भीवन लाल मीणा',house:'0',age:'24',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1478072',name:'सुरेंद्र कुमार चंदालियू',father:'सोमवती लाल चंदालियू',house:'0',age:'45',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1478080',name:'दीति चंदालिया',father:'सुरेंद्र कुमार चंदालियू',house:'0',age:'43',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1657386',name:'बाबू लाल मीणा',father:'भीवन लाल मीणा',house:'01',age:'19',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253558',name:'खानु राम',father:'सोमवती लाल चंदालियू',house:'9',age:'24',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253418',name:'कंचन बाई',father:'स्याम लाल मीणा',house:'12',age:'36',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1253384',name:'स्याम लाल',father:'भीवन लाल मीणा',house:'15',age:'32',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1470087',name:'हरिसंकर मीणा',father:'दरिया',house:'81',age:'21',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO0117796',name:'प्रेमसंकर मीणा',father:'सोमवती लाल मीणा',house:'101',age:'35',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1126721',name:'मीरा',father:'नारायण',house:'120',age:'34',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1126788',name:'राम प्रसाद',father:'सोमवती लाल',house:'144',age:'27',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO0677542',name:'रविशंकर',father:'सोमवती लाल मीणा',house:'175',age:'39',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1273713',name:'हीरा मीणा',father:'नंदा मीणा',house:'229',age:'32',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1126994',name:'रामचंद्र',father:'सोमवती लाल',house:'239',age:'35',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1126739',name:'नारायण',father:'सोमवती लाल',house:'239',age:'33',gender:'पुरुष',ward:'4',village:'देवगड',mobile:''},
+{epic:'TAO1596840',name:'लता कुमारी मीणा',father:'रमेश चंद्र',house:'239',age:'29',gender:'महिला',ward:'4',village:'देवगड',mobile:''},
+// ===== WARD 5 =====
+{epic:'TAO1086891',name:'साधना मीना',father:'पालिबा मीना',house:'99',age:'31',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1332758',name:'स्थाना मीना',father:'देवी लाल मीना',house:'102',age:'27',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO0739987',name:'श्रवण',father:'मातुप्रकाश',house:'05',age:'30',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1087048',name:'सुता कुमारी मीना',father:'बली लाल मीना',house:'12',age:'26',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1087311',name:'युवी वाई',father:'बालु राम',house:'18',age:'30',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1087030',name:'दैनमल मीना',father:'राव मीना',house:'24',age:'26',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'RJ/17/127/015282',name:'पंचिया',father:'सुतिरिया',house:'72',age:'64',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO0766832',name:'भैरुलाल',father:'पंचिया',house:'72',age:'30',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1252154',name:'सीता कुमारी',father:'मेरू लाल मीना',house:'72',age:'27',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1345834',name:'देवली',father:'पंचिया',house:'72',age:'24',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'FQS1698760',name:'रामचन्द्र',father:'पंचिया',house:'73',age:'43',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'FQS1698778',name:'नारायणी',father:'रामचन्द्र',house:'73',age:'43',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1332782',name:'हाली कुमारी',father:'स्थानाल',house:'73',age:'23',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1417773',name:'तुलसा मीना',father:'राम चंद्र',house:'73',age:'22',gender:'महिला',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1455773',name:'स्थान लाल मीना',father:'रामचंद्र मीना',house:'73',age:'21',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+{epic:'TAO1726728',name:'सुकेश कुमार',father:'रामचन्द्र',house:'73',age:'19',gender:'पुरुष',ward:'5',village:'सामली पठार',mobile:''},
+// ===== WARD 6 =====
+{epic:'TAO0888253',name:'सावा',father:'रमेश',house:'88',age:'29',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO0988295',name:'शंकर लाल',father:'नामजीवालाल',house:'145',age:'29',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009413',name:'गीता',father:'बौकर',house:'259',age:'72',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO0690040',name:'रूपली',father:'मांगीलाल',house:'259',age:'43',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'FQS1473164',name:'मांगीलाल',father:'नामजीवालाल',house:'259',age:'41',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO0988352',name:'गुड्डी',father:'मुकेश',house:'259',age:'29',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009424',name:'नरजी',father:'नामकेशुराम',house:'261',age:'58',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009423',name:'मांगीली',father:'नमजी',house:'261',age:'56',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1315522',name:'गंगा',father:'नायुराम',house:'261',age:'42',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1345636',name:'नेव लाल',father:'नामलघरमा',house:'261',age:'37',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1334804',name:'हीराली',father:'नामन्द',house:'261',age:'35',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/010103',name:'गुजाला',father:'गंगारामसम',house:'263',age:'54',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009860',name:'धोलाला',father:'नामलघरम',house:'263',age:'51',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'FQS1473172',name:'गुड्डी',father:'किशन',house:'263',age:'44',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'FQS1801232',name:'गुंगा',father:'धोलाला',house:'263',age:'41',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1665595',name:'बन्नालाल मीना',father:'नामकुशाला मीना',house:'263',age:'23',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009857',name:'भाबरी',father:'रामा',house:'264',age:'66',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1315498',name:'काला',father:'नामगाराम',house:'264',age:'42',gender:'पुरुष',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'TAO1315407',name:'सीमा',father:'काला',house:'264',age:'37',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+{epic:'RJ/17/127/009001',name:'भावरी',father:'घोखा',house:'265',age:'76',gender:'महिला',ward:'6',village:'नयाबेड़ा',mobile:''},
+// ===== WARD 7 =====
+{epic:'TAO1251185',name:'चीरज मल',father:'नामजीवी बीधा',house:'03',age:'30',gender:'पुरुष',ward:'7',village:'सामली पठार',mobile:''},
+{epic:'TAO1252212',name:'इन्द्र कुमारी',father:'धीरज मल मीणा',house:'3',age:'28',gender:'महिला',ward:'7',village:'सामली पठार',mobile:''},
+{epic:'TAO1252055',name:'गुुरा',father:'कंवर लाल मीणा',house:'28',age:'30',gender:'महिला',ward:'7',village:'सामली पठार',mobile:''},
+{epic:'TAO1252006',name:'कंवर लाल',father:'आशा राम मीणा',house:'28',age:'27',gender:'पुरुष',ward:'7',village:'सामली पठार',mobile:''},
+{epic:'TAO1252113',name:'सेवा कुमारी',father:'फतह लाल मीणा',house:'52',age:'29',gender:'महिला',ward:'7',village:'सामली पठार',mobile:''},
+{epic:'TAO1388313',name:'करिसमा मीना',father:'सुभाष',house:'11',age:'27',gender:'महिला',ward:'7',village:'नया बेडा',mobile:''},
+{epic:'TAO1127281',name:'सुभाष चन्द',father:'कृष्पलास मीना',house:'11',age:'26',gender:'पुरुष',ward:'7',village:'नया बेडा',mobile:''},
+{epic:'FQS1474683',name:'आलिया',father:'किशन',house:'1',age:'60',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015955',name:'नानकी',father:'आलिया',house:'1',age:'59',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'TAO1665975',name:'कमला बाई मीना',father:'संकर लाल मीना',house:'1',age:'41',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'TAO0274159',name:'संकर',father:'आलिया',house:'1',age:'37',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015651',name:'मेरा',father:'किशन',house:'2',age:'74',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'FQS1699230',name:'राजुकी',father:'मेरा',house:'2',age:'72',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'TAO0225656',name:'इन्दर',father:'नाथू',house:'2',age:'37',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'TAO0225532',name:'नाथू',father:'मेरा',house:'2',age:'36',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015483',name:'राया',father:'आलिया',house:'3',age:'59',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015638',name:'सुरजा',father:'राया',house:'3',age:'58',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'TAO0740092',name:'मुलकी',father:'मांगीलाल',house:'3',age:'44',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'FQS1474691',name:'मांगीलाल',father:'चौंचा',house:'3',age:'41',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'TA00501304',name:'बायुराम',father:'राया',house:'3',age:'36',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015167',name:'मुक्की',father:'वक्या',house:'4',age:'87',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015166',name:'मिम्बी',father:'वक्या',house:'4',age:'69',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015168',name:'नाराणी',father:'मिम्बी',house:'4',age:'62',gender:'महिला',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015750',name:'मगवाना',father:'वक्या',house:'4',age:'61',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+{epic:'RJ/17/127/015754',name:'गोपाल',father:'वक्या',house:'4',age:'59',gender:'पुरुष',ward:'7',village:'बारी',mobile:''},
+];
 
 // ============================================================
 // UPLOAD EVENTS
@@ -161,151 +560,125 @@ uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag
 uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadArea.classList.remove('dragover');
-    if (e.dataTransfer.files.length > 0) handlePDF(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length > 0) handleMultiplePDFs(e.dataTransfer.files);
 });
 pdfFileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) handlePDF(e.target.files[0]);
+    if (e.target.files.length > 0) handleMultiplePDFs(e.target.files);
 });
 
+searchInput.addEventListener('input', applyFilters);
+genderFilter.addEventListener('change', applyFilters);
+wardSelect.addEventListener('change', applyFilters);
+
 // ============================================================
-// MAIN PDF HANDLER
+// HANDLE MULTIPLE PDFs
 // ============================================================
-async function handlePDF(file) {
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+async function handleMultiplePDFs(files) {
+    const pdfFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    if (pdfFiles.length === 0) {
         showToast('❌ केवल PDF file', 'error');
         return;
     }
 
     resultPanel.style.display = 'none';
     progressBar.classList.add('show');
-    setProgress(5, '5%');
-    setStatus('⏳ PDF पढ़ रहे हैं...', '');
+    setProgress(0, '0%');
+    setStatus(`⏳ ${pdfFiles.length} PDF files पढ़ रहे हैं...`, '');
 
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const totalPages = pdf.numPages;
-        
-        setStatus(`📖 ${totalPages} pages मिले। Text extract हो रहा है...`, '');
+    let allVoters = [];
+    let processed = 0;
 
-        let fullText = '';
-        
-        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            
-            // Extract text with position info
-            const items = textContent.items.map(item => ({
-                text: item.str,
-                x: item.transform[4],
-                y: item.transform[5]
-            }));
-            
-            // Sort by Y (top to bottom), then X (left to right)
-            items.sort((a, b) => {
-                if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
-                return a.x - b.x;
-            });
-            
-            // Group into lines
-            let currentY = null;
-            let currentLine = '';
-            items.forEach(item => {
-                if (currentY === null || Math.abs(item.y - currentY) > 3) {
-                    if (currentLine) fullText += currentLine.trim() + '\n';
-                    currentLine = item.text + ' ';
-                    currentY = item.y;
-                } else {
-                    currentLine += item.text + ' ';
-                }
-            });
-            if (currentLine) fullText += currentLine.trim() + '\n';
-            fullText += '\n--- PAGE BREAK ---\n';
-            
-            const pct = Math.round((pageNum / totalPages) * 60) + 5;
+    for (const file of pdfFiles) {
+        try {
+            setStatus(`📖 ${file.name} पढ़ रहे हैं... (${processed + 1}/${pdfFiles.length})`, '');
+            const voters = await processPDF(file);
+            allVoters = allVoters.concat(voters);
+            processed++;
+            const pct = Math.round((processed / pdfFiles.length) * 100);
             setProgress(pct, pct + '%');
+        } catch (err) {
+            console.error('Error processing', file.name, err);
         }
-
-        setStatus('🔍 Data parse हो रहा है (column-wise)...', '');
-        setProgress(75, '75%');
-
-        // Extract metadata
-        pdfMeta = extractMeta(fullText);
-        
-        // Extract voters
-        extractedVoters = extractVoters(fullText, pdfMeta);
-
-        if (extractedVoters.length === 0) {
-            setStatus('⚠️ कोई data नहीं मिला। PDF format check करें।', 'warning');
-            setProgress(100, '0 found');
-            showToast('⚠️ कोई data नहीं मिला', 'warning');
-            return;
-        }
-
-        setProgress(100, '100%');
-        setStatus(`✅ ${extractedVoters.length} voters successfully extract हो गए!`, '');
-        showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
-
-        // Show result
-        renderResult(extractedVoters);
-
-    } catch (err) {
-        console.error(err);
-        setStatus('❌ Error: ' + err.message, 'error');
-        showToast('❌ PDF read error', 'error');
-    } finally {
-        setTimeout(() => progressBar.classList.remove('show'), 2000);
     }
+
+    if (allVoters.length === 0) {
+        setStatus('⚠️ कोई data नहीं मिला। PDF format check करें।', 'warning');
+        showToast('⚠️ कोई data नहीं मिला', 'warning');
+        setTimeout(() => progressBar.classList.remove('show'), 2000);
+        return;
+    }
+
+    const seen = new Set();
+    extractedVoters = allVoters.filter(v => {
+        const key = (v.epic || '') + '|' + v.name + '|' + v.father + '|' + v.ward;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    setProgress(100, '100%');
+    setStatus(`✅ ${extractedVoters.length} voters successfully extract हो गए!`, '');
+    showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
+
+    renderResult(extractedVoters);
+    setTimeout(() => progressBar.classList.remove('show'), 2000);
 }
 
 // ============================================================
-// EXTRACT META (Ward, Village, etc.)
+// PROCESS SINGLE PDF
 // ============================================================
-function extractMeta(text) {
-    const meta = {
-        district: '',
-        panchayat: '',
-        gramPanchayat: '',
-        ward: '6',
-        village: ''
-    };
+async function processPDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+    let fullText = '';
 
-    const districtMatch = text.match(/जिला(?:परिषद)?\s*का\s*नाम\s*[:\-]?\s*([\u0900-\u097F]+)/);
-    if (districtMatch) meta.district = districtMatch[1].trim();
-
-    const gpMatch = text.match(/ग्राम\s*पंचायत\s*[:\-]?\s*([\u0900-\u097F\s]+?)(?:\n|वार्ड|$)/);
-    if (gpMatch) meta.gramPanchayat = gpMatch[1].trim();
-
-    const wardMatch = text.match(/वार्ड\s*क्रमांक\s*[:\-]?\s*(\d+)/);
-    if (wardMatch) meta.ward = wardMatch[1];
-
-    // Village: look for pattern like "उन्देडी,देवगढ"
-    const villageMatch = text.match(/\n\s*([\u0900-\u097F]+,[\u0900-\u097F]+)\s*\n/);
-    if (villageMatch) meta.village = villageMatch[1].trim();
-    else {
-        const vMatch2 = text.match(/([\u0900-\u097F]{3,20}),\s*([\u0900-\u097F]{3,20})/);
-        if (vMatch2) meta.village = vMatch2[0].trim();
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const items = textContent.items.map(item => ({
+            text: item.str,
+            x: item.transform[4],
+            y: item.transform[5]
+        }));
+        items.sort((a, b) => {
+            if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
+            return a.x - b.x;
+        });
+        let currentY = null;
+        let currentLine = '';
+        items.forEach(item => {
+            if (currentY === null || Math.abs(item.y - currentY) > 3) {
+                if (currentLine) fullText += currentLine.trim() + '\n';
+                currentLine = item.text + ' ';
+                currentY = item.y;
+            } else {
+                currentLine += item.text + ' ';
+            }
+        });
+        if (currentLine) fullText += currentLine.trim() + '\n';
+        fullText += '\n--- PAGE BREAK ---\n';
     }
 
-    if (!meta.village) meta.village = meta.gramPanchayat || 'सामली पठार';
+    const meta = extractMeta(fullText);
+    const filenameMatch = file.name.match(/Ward\s*No[-\s]*(\d+)/i) || file.name.match(/ward[-\s]*(\d+)/i);
+    if (filenameMatch) meta.ward = filenameMatch[1];
+    return extractVoters(fullText, meta);
+}
 
-    console.log('Meta extracted:', meta);
+function extractMeta(text) {
+    const meta = { district: '', panchayat: '', ward: '1', village: 'सामली पठार' };
+    const wardMatch = text.match(/वार्ड\s*क्रमांक\s*[:\-]?\s*(\d+)/);
+    if (wardMatch) meta.ward = wardMatch[1];
     return meta;
 }
 
-// ============================================================
-// EXTRACT VOTERS — Line by Line Parsing
-// ============================================================
 function extractVoters(text, meta) {
     const voters = [];
-
-    // Clean text
     let cleanText = text.replace(/--- PAGE BREAK ---/g, '\n');
     cleanText = cleanText.replace(/Photo\s*is\s*Available/gi, '');
     cleanText = cleanText.replace(/Photo\s*is\s*Not\s*Available/gi, '');
     cleanText = cleanText.replace(/\s+/g, ' ');
-    
-    // Normalize newlines: split by common patterns
     cleanText = cleanText
         .replace(/नाम\s*[:：]/g, '\n@@NAME@@')
         .replace(/पिता\s*का\s*नाम\s*[:：]?/g, '\n@@FATHER@@')
@@ -314,118 +687,70 @@ function extractVoters(text, meta) {
         .replace(/आयु\s*[:：]?/g, '\n@@AGE@@')
         .replace(/लिंग\s*[:：]?/g, '\n@@GENDER@@');
 
-    // Split into record chunks by EPIC ID pattern
-    // EPIC patterns: TAO0988253, RJ/17/127/009413, FQS1473164
-    const epicRegex = /(RJ\/\d+\/\d+\/\d+|[A-Z]{3}\d{6,10})/g;
-    
-    // Find all EPICs with their positions
+    const epicRegex = /(RJ\/\d+\/\d+\/\d+|[A-Z]{3}\d{6,10}|FQS\d{6,10})/g;
     const positions = [];
     let m;
     while ((m = epicRegex.exec(cleanText)) !== null) {
         positions.push({ epic: m[1], index: m.index });
     }
 
-    console.log(`Found ${positions.length} EPIC IDs`);
-
-    // Process each EPIC block
     for (let i = 0; i < positions.length; i++) {
         const startIdx = positions[i].index;
         const endIdx = i < positions.length - 1 ? positions[i + 1].index : cleanText.length;
         const block = cleanText.substring(startIdx, endIdx);
-        
         const voter = parseBlock(block, positions[i].epic, meta);
-        if (voter && voter.name) {
-            voters.push(voter);
-        }
+        if (voter && voter.name) voters.push(voter);
     }
-
-    // Fallback: if no EPIC matched, parse by NAME blocks
-    if (voters.length === 0) {
-        console.log('Trying name-based parsing...');
-        const nameBlocks = cleanText.split('@@NAME@@');
-        nameBlocks.forEach((block, i) => {
-            if (i === 0) return;
-            const nextIdx = block.indexOf('@@NAME@@');
-            const relevant = nextIdx > 0 ? block.substring(0, nextIdx) : block;
-            const voter = parseBlock(relevant, '', meta);
-            if (voter && voter.name) voters.push(voter);
-        });
-    }
-
-    // Remove duplicates
-    const seen = new Set();
-    const unique = voters.filter(v => {
-        const key = (v.epic || '') + '|' + v.name + '|' + v.father;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-
-    // Auto-assign EPIC if missing
-    unique.forEach((v, i) => {
-        if (!v.epic) {
-            v.epic = 'RJP' + String(v.ward).padStart(2, '0') + String(i + 1).padStart(6, '0');
-        }
-    });
-
-    console.log(`Parsed ${unique.length} unique voters`);
-    return unique;
+    return voters;
 }
 
-// ============================================================
-// PARSE ONE BLOCK
-// ============================================================
 function parseBlock(block, epic, meta) {
     const voter = {
-        epic: epic || '',
-        name: '',
-        father: '',
-        house: '',
-        age: '',
-        gender: 'पुरुष',
-        ward: meta.ward || '1',
-        village: meta.village || '',
-        mobile: ''
+        epic: epic || '', name: '', father: '', house: '', age: '',
+        gender: 'पुरुष', ward: meta.ward || '1',
+        village: meta.village || 'सामली पठार', mobile: ''
     };
-
-    // NAME
     const nameMatch = block.match(/@@NAME@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
-    if (nameMatch) {
-        voter.name = nameMatch[1].trim().replace(/\s+/g, ' ');
-    }
-
-    // FATHER (पिता का नाम)
+    if (nameMatch) voter.name = nameMatch[1].trim().replace(/\s+/g, ' ');
     const fatherMatch = block.match(/@@FATHER@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
-    if (fatherMatch) {
-        voter.father = fatherMatch[1].trim().replace(/\s+/g, ' ');
-    }
-
-    // HUSBAND (पति का नाम)
+    if (fatherMatch) voter.father = fatherMatch[1].trim().replace(/\s+/g, ' ');
     if (!voter.father) {
         const husbandMatch = block.match(/@@HUSBAND@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
-        if (husbandMatch) {
-            voter.father = husbandMatch[1].trim().replace(/\s+/g, ' ');
-        }
+        if (husbandMatch) voter.father = husbandMatch[1].trim().replace(/\s+/g, ' ');
     }
-
-    // HOUSE
     const houseMatch = block.match(/@@HOUSE@@\s*([0-9]+)/);
     if (houseMatch) voter.house = houseMatch[1];
-
-    // AGE
     const ageMatch = block.match(/@@AGE@@\s*([0-9]+)/);
     if (ageMatch) voter.age = ageMatch[1];
-
-    // GENDER
-    const genderMatch = block.match(/@@GENDER@@\s*(स्त्री|पुरुष|महिला|अन्य)/);
+    const genderMatch = block.match(/@@GENDER@@\s*(स्त्री|पुरुष|महिला|अन्य|बी|खी|छी)/);
     if (genderMatch) {
         const g = genderMatch[1];
-        if (g === 'स्त्री' || g === 'महिला') voter.gender = 'महिला';
+        if (g === 'स्त्री' || g === 'महिला' || g === 'बी' || g === 'खी' || g === 'छी') voter.gender = 'महिला';
         else if (g === 'पुरुष') voter.gender = 'पुरुष';
         else voter.gender = g;
     }
-
     return voter;
+}
+
+// ============================================================
+// SAMPLE DOWNLOADS
+// ============================================================
+function downloadSampleExcel() {
+    extractedVoters = SAMPLE_VOTERS;
+    renderResult(extractedVoters);
+    setTimeout(() => downloadExcel(), 500);
+}
+
+function downloadSampleWardWise() {
+    extractedVoters = SAMPLE_VOTERS;
+    renderResult(extractedVoters);
+    setTimeout(() => downloadWardWiseExcel(), 500);
+}
+
+function downloadSampleCSV() {
+    extractedVoters = SAMPLE_VOTERS;
+    renderResult(extractedVoters);
+    setTimeout(() => downloadCSV(), 500);
 }
 
 // ============================================================
@@ -434,37 +759,66 @@ function parseBlock(block, epic, meta) {
 function renderResult(voters) {
     resultPanel.style.display = 'block';
 
-    // Stats
     const male = voters.filter(v => v.gender === 'पुरुष').length;
     const female = voters.filter(v => v.gender === 'महिला').length;
     const withEpic = voters.filter(v => v.epic && v.epic.length > 5).length;
     const withFather = voters.filter(v => v.father).length;
+    const wardCount = [...new Set(voters.map(v => v.ward))].length;
 
     statsEl.innerHTML = `
         <div class="stat-box"><div class="num">${voters.length}</div><div class="lbl">कुल Voters</div></div>
-        <div class="stat-box"><div class="num">${male}</div><div class="lbl">पुरुष</div></div>
-        <div class="stat-box"><div class="num">${female}</div><div class="lbl">महिला</div></div>
+        <div class="stat-box blue"><div class="num">${male}</div><div class="lbl">पुरुष</div></div>
+        <div class="stat-box purple"><div class="num">${female}</div><div class="lbl">महिला</div></div>
+        <div class="stat-box orange"><div class="num">${wardCount}</div><div class="lbl">Wards</div></div>
         <div class="stat-box"><div class="num">${withEpic}</div><div class="lbl">EPIC ID</div></div>
-        <div class="stat-box"><div class="num">${withFather}</div><div class="lbl">पिता/पति</div></div>
     `;
 
-    // Column info
     columnInfo.innerHTML = `
-        <h4>📋 Extracted Columns</h4>
+        <h4>📋 Extracted Columns (हर field अलग column में)</h4>
         <span class="col ok">EPIC ID</span>
         <span class="col ok">नाम (Name)</span>
         <span class="col ${withFather > 0 ? 'ok' : 'miss'}">पिता/पति</span>
         <span class="col ${voters.some(v => v.house) ? 'ok' : 'miss'}">मकान संख्या</span>
         <span class="col ${voters.some(v => v.age) ? 'ok' : 'miss'}">आयु</span>
         <span class="col ok">लिंग</span>
-        <span class="col ok">वार्ड (${pdfMeta.ward || '1'})</span>
-        <span class="col ok">गाँव (${pdfMeta.village || '-'})</span>
+        <span class="col ok">वार्ड</span>
+        <span class="col ok">गाँव</span>
         <span class="col miss">मोबाइल (खाली)</span>
     `;
 
-    // Preview table
+    const wards = [...new Set(voters.map(v => v.ward))].sort((a,b) => parseInt(a) - parseInt(b));
+    wardChips.innerHTML = `<div class="ward-chip ${activeWardFilter === 'all' ? 'active' : ''}" data-ward="all">सभी Wards <span class="count">${voters.length}</span></div>`;
+    wards.forEach(w => {
+        const count = voters.filter(v => v.ward === w).length;
+        wardChips.innerHTML += `<div class="ward-chip ${activeWardFilter === w ? 'active' : ''}" data-ward="${w}">वार्ड ${w} <span class="count">${count}</span></div>`;
+    });
+    wardFilterContainer.style.display = 'block';
+
+    wardChips.querySelectorAll('.ward-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            activeWardFilter = chip.dataset.ward;
+            wardChips.querySelectorAll('.ward-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            applyFilters();
+        });
+    });
+
+    wardSelect.innerHTML = '<option value="">सभी Wards</option>';
+    wards.forEach(w => {
+        wardSelect.innerHTML += `<option value="${w}">वार्ड ${w}</option>`;
+    });
+
+    renderTable(voters);
+}
+
+function renderTable(voters) {
     previewBody.innerHTML = '';
-    voters.slice(0, 50).forEach((v, i) => {
+    const slice = voters.slice(0, 100);
+    if (slice.length === 0) {
+        previewBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#999;">कोई data नहीं मिला</td></tr>';
+        return;
+    }
+    slice.forEach((v, i) => {
         previewBody.innerHTML += `<tr>
             <td>${i + 1}</td>
             <td><span class="badge epic">${escapeHtml(v.epic || '-')}</span></td>
@@ -473,22 +827,41 @@ function renderResult(voters) {
             <td>${escapeHtml(v.house || '-')}</td>
             <td>${escapeHtml(v.age || '-')}</td>
             <td>${escapeHtml(v.gender || '-')}</td>
-            <td>${escapeHtml(v.ward)}</td>
+            <td><span class="badge ward">${escapeHtml(v.ward)}</span></td>
             <td>${escapeHtml(v.village || '-')}</td>
         </tr>`;
     });
 }
 
+function applyFilters() {
+    const search = searchInput.value.toLowerCase().trim();
+    const gender = genderFilter.value;
+    const ward = wardSelect.value;
+
+    let filtered = extractedVoters;
+    if (activeWardFilter !== 'all') filtered = filtered.filter(v => v.ward === activeWardFilter);
+    if (ward) filtered = filtered.filter(v => v.ward === ward);
+    if (gender) filtered = filtered.filter(v => v.gender === gender);
+    if (search) {
+        filtered = filtered.filter(v =>
+            (v.name || '').toLowerCase().includes(search) ||
+            (v.epic || '').toLowerCase().includes(search) ||
+            (v.father || '').toLowerCase().includes(search) ||
+            (v.village || '').toLowerCase().includes(search)
+        );
+    }
+    renderTable(filtered);
+}
+
 // ============================================================
-// EXCEL DOWNLOAD (Column-wise)
+// EXCEL DOWNLOAD — PROPER ROWS & COLUMNS
 // ============================================================
 function downloadExcel() {
     if (extractedVoters.length === 0) {
         showToast('❌ कोई data नहीं', 'error');
         return;
     }
-
-    // Create column-wise data
+    // Har field alag column me
     const data = extractedVoters.map((v, i) => ({
         'क्र.सं.': i + 1,
         'EPIC ID': v.epic || '',
@@ -501,31 +874,54 @@ function downloadExcel() {
         'गाँव': v.village || '',
         'मोबाइल नंबर': v.mobile || ''
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
-
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 7 },   // क्र.सं.
-        { wch: 16 },  // EPIC ID
-        { wch: 25 },  // नाम
-        { wch: 25 },  // पिता/पति
-        { wch: 12 },  // मकान
-        { wch: 7 },   // आयु
-        { wch: 10 },  // लिंग
-        { wch: 8 },   // वार्ड
-        { wch: 20 },  // गाँव
-        { wch: 15 }   // मोबाइल
-    ];
-
+    ws['!cols'] = COLUMNS.map(c => ({ wch: c.width }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Voter List');
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Voter_List_Samli_Pathar_All_Wards_${date}.xlsx`);
+    showToast('✅ Excel download हो गई (Proper Columns)', 'success');
+}
+
+// ============================================================
+// WARD-WISE EXCEL — हर Ward की अलग Sheet
+// ============================================================
+function downloadWardWiseExcel() {
+    if (extractedVoters.length === 0) {
+        showToast('❌ कोई data नहीं', 'error');
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    const wards = [...new Set(extractedVoters.map(v => v.ward))].sort((a,b) => parseInt(a) - parseInt(b));
+
+    // All Wards sheet
+    const allData = extractedVoters.map((v, i) => ({
+        'क्र.सं.': i + 1, 'EPIC ID': v.epic || '', 'नाम': v.name || '',
+        'पिता/पति का नाम': v.father || '', 'मकान संख्या': v.house || '',
+        'आयु': v.age || '', 'लिंग': v.gender || '', 'वार्ड': v.ward || '',
+        'गाँव': v.village || '', 'मोबाइल नंबर': v.mobile || ''
+    }));
+    const allWs = XLSX.utils.json_to_sheet(allData);
+    allWs['!cols'] = COLUMNS.map(c => ({ wch: c.width }));
+    XLSX.utils.book_append_sheet(wb, allWs, 'All Wards');
+
+    // Per-ward sheets
+    wards.forEach(w => {
+        const wardVoters = extractedVoters.filter(v => v.ward === w);
+        const wardData = wardVoters.map((v, i) => ({
+            'क्र.सं.': i + 1, 'EPIC ID': v.epic || '', 'नाम': v.name || '',
+            'पिता/पति का नाम': v.father || '', 'मकान संख्या': v.house || '',
+            'आयु': v.age || '', 'लिंग': v.gender || '', 'वार्ड': v.ward || '',
+            'गाँव': v.village || '', 'मोबाइल नंबर': v.mobile || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(wardData);
+        ws['!cols'] = COLUMNS.map(c => ({ wch: c.width }));
+        XLSX.utils.book_append_sheet(wb, ws, `Ward ${w}`);
+    });
 
     const date = new Date().toISOString().slice(0, 10);
-    const filename = `Voter_List_Ward${pdfMeta.ward || '6'}_${date}.xlsx`;
-    
-    XLSX.writeFile(wb, filename);
-    showToast('✅ Excel download हो गई', 'success');
+    XLSX.writeFile(wb, `Voter_List_WardWise_${date}.xlsx`);
+    showToast(`✅ ${wards.length} Ward-wise Excel download हो गई`, 'success');
 }
 
 // ============================================================
@@ -536,17 +932,20 @@ function downloadCSV() {
         showToast('❌ कोई data नहीं', 'error');
         return;
     }
-
     let csv = 'क्र.सं.,EPIC ID,नाम,पिता/पति का नाम,मकान संख्या,आयु,लिंग,वार्ड,गाँव,मोबाइल नंबर\n';
     extractedVoters.forEach((v, i) => {
-        csv += `${i + 1},"${v.epic || ''}","${v.name || ''}","${v.father || ''}","${v.house || ''}","${v.age || ''}","${v.gender || ''}","${v.ward || ''}","${v.village || ''}","${v.mobile || ''}"\n`;
+        const row = [
+            i + 1,
+            v.epic || '', v.name || '', v.father || '', v.house || '',
+            v.age || '', v.gender || '', v.ward || '', v.village || '', v.mobile || ''
+        ];
+        csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
     });
-
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Voter_List_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `Voter_List_Samli_Pathar_All_Wards_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('✅ CSV download हो गई', 'success');
@@ -558,8 +957,12 @@ function downloadCSV() {
 function clearAll() {
     extractedVoters = [];
     pdfMeta = {};
+    activeWardFilter = 'all';
     resultPanel.style.display = 'none';
     pdfFileInput.value = '';
+    searchInput.value = '';
+    genderFilter.value = '';
+    wardSelect.value = '';
     setStatus('', '');
     showToast('❌ Cleared', 'info');
 }
