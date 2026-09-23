@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voter PDF → Excel Converter (Final with Edit)</title>
+<title>Voter PDF → Excel (Position-Fixed)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -19,21 +19,11 @@ h1{color:#075e36;margin-bottom:10px;font-size:26px;}
 .upload-area .icon{font-size:70px;margin-bottom:15px;}
 .upload-area h2{color:#075e36;margin-bottom:10px;}
 .upload-area p{color:#66736b;font-size:14px;}
-.btn{background:#087b40;color:white;border:0;padding:13px 22px;border-radius:9px;cursor:pointer;margin:8px 5px 0 0;font-size:15px;font-weight:600;transition:all 0.2s;}
-.btn:hover{background:#075e36;transform:translateY(-2px);}
-.btn.blue{background:#1976d2;}
-.btn.blue:hover{background:#1565c0;}
-.btn.purple{background:#7b1fa2;}
-.btn.purple:hover{background:#6a1b9a;}
-.btn.red{background:#c62828;}
-.btn.red:hover{background:#b71c1c;}
-.btn.orange{background:#e65100;}
-.btn.orange:hover{background:#bf360c;}
-.btn.green{background:#087b40;}
-.btn.green:hover{background:#075e36;}
+.btn{background:#087b40;color:white;border:0;padding:13px 22px;border-radius:9px;cursor:pointer;margin:8px 5px 0 0;font-size:15px;font-weight:600;}
+.btn:hover{background:#075e36;}
+.btn.blue{background:#1976d2;} .btn.red{background:#c62828;}
+.btn.orange{background:#e65100;} .btn.green{background:#087b40;}
 .btn.secondary{background:#e8f4ed;color:#075e36;}
-.btn.secondary:hover{background:#d9f2e3;}
-.btn:disabled{background:#ccc;cursor:not-allowed;}
 .progress-bar{width:100%;height:25px;background:#e0e8e3;border-radius:12px;overflow:hidden;margin:20px 0;display:none;}
 .progress-bar.show{display:block;}
 .progress-bar .fill{height:100%;background:linear-gradient(90deg,#075e36,#10a95b);width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;}
@@ -41,7 +31,6 @@ h1{color:#075e36;margin-bottom:10px;font-size:26px;}
 .status.show{display:block;}
 .status.error{background:#ffebee;color:#c62828;}
 .status.warning{background:#fff8e1;color:#e69b00;}
-.status.info{background:#e3f2fd;color:#1565c0;}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0;}
 .stat-box{background:linear-gradient(135deg,#075e36,#10a95b);color:white;padding:18px;border-radius:12px;text-align:center;}
 .stat-box.blue{background:linear-gradient(135deg,#1565c0,#1976d2);}
@@ -55,13 +44,9 @@ th{background:#075e36;color:white;padding:12px 8px;text-align:left;font-size:13p
 td{padding:8px;border-bottom:1px solid #e0e8e3;font-size:13px;}
 tr:nth-child(even){background:#f9fdfb;}
 tr:hover{background:#e8f4ed;}
-.badge{padding:4px 10px;border-radius:20px;background:#e8f5ed;color:#087b40;font-size:11px;font-weight:600;}
-.badge.epic{background:#fff3e0;color:#e65100;font-family:monospace;}
-.badge.ward{background:#e3f2fd;color:#1565c0;}
-.edit-input{width:100%;padding:6px 8px;border:1px solid #c8e6d4;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fdfb;transition:all 0.2s;}
+.edit-input{width:100%;padding:6px 8px;border:1px solid #c8e6d4;border-radius:6px;font-size:13px;font-family:inherit;background:#f9fdfb;}
 .edit-input:focus{outline:none;border-color:#10a95b;background:white;box-shadow:0 0 0 3px rgba(16,169,91,0.15);}
 .edit-input.mobile{background:#fff8e1;border-color:#ffcc80;}
-.edit-input.mobile:focus{border-color:#e65100;box-shadow:0 0 0 3px rgba(230,81,0,0.15);}
 .column-info{background:#f0faf4;padding:18px;border-radius:12px;border-left:5px solid #10a95b;margin:15px 0;}
 .column-info h4{color:#075e36;margin-bottom:12px;}
 .column-info .col{display:inline-block;padding:6px 14px;background:white;border-radius:20px;margin:4px;font-size:13px;border:1px solid #c8e6d4;}
@@ -69,37 +54,31 @@ tr:hover{background:#e8f4ed;}
 .column-info .col.ok::before{content:"✅ ";}
 .column-info .col.miss::before{content:"⚠️ ";}
 .actions{margin:15px 0;display:flex;gap:10px;flex-wrap:wrap;}
-.toast{position:fixed;bottom:20px;right:20px;padding:15px 25px;border-radius:10px;color:white;font-weight:bold;z-index:99999;box-shadow:0 4px 15px rgba(0,0,0,0.3);animation:slideIn 0.5s;}
-.toast.success{background:#075e36;}
-.toast.error{background:#c62828;}
-.toast.warning{background:#e69b00;}
-.toast.info{background:#1976d2;}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.toast{position:fixed;bottom:20px;right:20px;padding:15px 25px;border-radius:10px;color:white;font-weight:bold;z-index:99999;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
+.toast.success{background:#075e36;} .toast.error{background:#c62828;}
+.toast.warning{background:#e69b00;} .toast.info{background:#1976d2;}
 .help{background:#e3f2fd;padding:15px;border-radius:10px;margin-top:15px;border-left:4px solid #1976d2;font-size:13px;line-height:1.6;}
 .help strong{color:#1565c0;}
-.debug-box{background:#1e1e1e;color:#00ff00;padding:15px;border-radius:10px;margin-top:15px;font-family:'Courier New',monospace;font-size:12px;max-height:250px;overflow:auto;display:none;white-space:pre-wrap;line-height:1.5;}
+.debug-box{background:#1e1e1e;color:#00ff00;padding:15px;border-radius:10px;margin-top:15px;font-family:'Courier New',monospace;font-size:12px;max-height:400px;overflow:auto;display:none;white-space:pre-wrap;line-height:1.5;}
 .debug-box.show{display:block;}
 .ward-chips{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0;}
-.ward-chip{padding:8px 16px;background:#e8f4ed;color:#075e36;border-radius:20px;font-weight:600;font-size:13px;border:2px solid #10a95b;cursor:pointer;transition:all 0.2s;}
+.ward-chip{padding:8px 16px;background:#e8f4ed;color:#075e36;border-radius:20px;font-weight:600;font-size:13px;border:2px solid #10a95b;cursor:pointer;}
 .ward-chip:hover{background:#075e36;color:white;}
 .ward-chip.active{background:#075e36;color:white;}
 .ward-chip .count{background:rgba(255,255,255,0.3);padding:2px 8px;border-radius:10px;margin-left:6px;font-size:11px;}
 .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:15px 0;padding:15px;background:#f9fdfb;border-radius:10px;border:1px solid #e0e8e3;}
 .filter-bar label{font-size:13px;font-weight:600;color:#075e36;}
-.filter-bar input, .filter-bar select{padding:8px 12px;border:1px solid #c8e6d4;border-radius:8px;font-size:13px;font-family:inherit;}
-.filter-bar input:focus, .filter-bar select:focus{outline:none;border-color:#10a95b;box-shadow:0 0 0 3px rgba(16,169,91,0.1);}
+.filter-bar input, .filter-bar select{padding:8px 12px;border:1px solid #c8e6d4;border-radius:8px;font-size:13px;}
 .info-banner{background:#fff8e1;padding:12px 18px;border-radius:10px;margin:10px 0;border-left:4px solid #e69b00;font-size:13px;color:#e65100;font-weight:600;}
 .footer{text-align:center;color:#66736b;font-size:12px;margin-top:30px;padding:20px;}
-.edit-hint{background:#e3f2fd;padding:8px 15px;border-radius:8px;margin:10px 0;font-size:12px;color:#1565c0;border-left:3px solid #1976d2;}
 </style>
 </head>
 <body>
 <div class="container">
 
-<h1>📄 Voter PDF → Excel Converter</h1>
-<p class="sub">PDF upload करें → सारा data Excel में → मोबाइल नंबर manually भरें | सामली पठार (Ward 1-7)</p>
+<h1>📄 Voter PDF → Excel (Position-Fixed)</h1>
+<p class="sub">PDF upload करें — Position-aware extraction से सारा data मिलेगा</p>
 
-<!-- ============ UPLOAD PANEL ============ -->
 <div class="panel">
 <div class="upload-area" id="uploadArea">
 <div class="icon">📄</div>
@@ -118,8 +97,8 @@ tr:hover{background:#e8f4ed;}
 <strong>📌 ज़रूरी बातें:</strong><br>
 ✅ Digital PDF (text-based) होनी चाहिए<br>
 ✅ सभी 7 Wards की PDF एक साथ upload करें<br>
-✅ PDF का नाम ऐसा हो: <code>SAMLI PATHAR-Ward No-001.pdf</code><br>
-✅ Mobile नंबर खाली रहेगा — preview में भर सकते हैं
+✅ PDF का नाम: <code>SAMLI PATHAR-Ward No-001.pdf</code><br>
+✅ अगर data न मिले तो <strong>🔍 Debug Info</strong> देखें
 </div>
 
 <div style="margin-top:15px;">
@@ -128,11 +107,9 @@ tr:hover{background:#e8f4ed;}
 <div class="debug-box" id="debugBox"></div>
 </div>
 
-<!-- ============ RESULT PANEL ============ -->
 <div class="panel" id="resultPanel" style="display:none;">
 <h2 style="color:#075e36;margin-bottom:15px;">📊 Extraction Result</h2>
 <div class="stats" id="stats"></div>
-
 <div class="column-info" id="columnInfo"></div>
 
 <div id="wardFilterContainer" style="display:none;">
@@ -142,7 +119,7 @@ tr:hover{background:#e8f4ed;}
 
 <div class="filter-bar">
 <label>🔍 खोजें:</label>
-<input type="text" id="searchInput" placeholder="नाम, EPIC, पिता/पति..." style="flex:1;min-width:200px;">
+<input type="text" id="searchInput" placeholder="नाम, EPIC..." style="flex:1;min-width:200px;">
 <label>लिंग:</label>
 <select id="genderFilter">
 <option value="">सभी</option>
@@ -150,27 +127,22 @@ tr:hover{background:#e8f4ed;}
 <option value="महिला">महिला</option>
 </select>
 <label>वार्ड:</label>
-<select id="wardSelect">
-<option value="">सभी Wards</option>
-</select>
+<select id="wardSelect"><option value="">सभी</option></select>
 </div>
 
-<div class="info-banner">✏️ Mobile नंबर खाली है — नीचे preview table में "मोबाइल" column में type करके भर सकते हैं। बाकी fields भी edit हो सकते हैं।</div>
-<div class="edit-hint">💡 <strong>Tip:</strong> हर cell editable है। जो field बदलना हो, उस पर click करके type करें। Excel में वही value जाएगी।</div>
+<div class="info-banner">✏️ सभी fields editable हैं — जो बदलना हो edit करें, Excel में वही जाएगा।</div>
 
 <div class="actions">
-<button class="btn green" onclick="downloadExcel()">📥 Excel Download (Proper Columns)</button>
+<button class="btn green" onclick="downloadExcel()">📥 Excel Download</button>
 <button class="btn orange" onclick="downloadWardWiseExcel()">📊 Ward-wise Excel</button>
-<button class="btn blue" onclick="downloadWithMobileExcel()">📱 Mobile भरा हुआ Excel</button>
-<button class="btn secondary" onclick="downloadCSV()">📄 CSV Download</button>
+<button class="btn blue" onclick="downloadCSV()">📄 CSV</button>
 <button class="btn red" onclick="clearAll()">❌ Clear</button>
 </div>
 
-<h3 style="color:#075e36;margin:20px 0 10px;">👁️ Preview (Editable — First 200 rows)</h3>
+<h3 style="color:#075e36;margin:20px 0 10px;">👁️ Preview (Editable)</h3>
 <div class="table-container">
 <table id="previewTable">
-<thead>
-<tr>
+<thead><tr>
 <th style="width:50px;">क्र.</th>
 <th style="width:140px;">EPIC ID</th>
 <th style="width:180px;">नाम</th>
@@ -181,18 +153,13 @@ tr:hover{background:#e8f4ed;}
 <th style="width:70px;">वार्ड</th>
 <th style="width:130px;">गाँव</th>
 <th style="width:150px;">मोबाइल</th>
-</tr>
-</thead>
+</tr></thead>
 <tbody id="previewBody"></tbody>
 </table>
 </div>
-<p style="margin-top:10px;color:#66736b;font-size:12px;">* हर cell पर click करके edit कर सकते हैं। Excel download करते समय edited values जाएंगी।</p>
 </div>
 
-<div class="footer">
-राज्य निर्वाचन आयोग, राजस्थान | पंचायत चुनाव निर्वाचक नामावली 2026<br>
-सामली पठार — Ward 1 से 7
-</div>
+<div class="footer">राज्य निर्वाचन आयोग, राजस्थान | पंचायत चुनाव निर्वाचक नामावली 2026</div>
 
 </div>
 
@@ -225,17 +192,12 @@ const COLUMNS = [
     { width: 20 }, { width: 15 }
 ];
 
-function addDebug(msg) {
-    debugLog.push(msg);
-    debugBox.textContent = debugLog.join('\n');
-    console.log(msg);
-}
+function addDebug(msg) { debugLog.push(msg); debugBox.textContent = debugLog.join('\n'); console.log(msg); }
 function toggleDebug() { debugBox.classList.toggle('show'); }
 
-// ============ EPIC PATTERNS ============
-const EPIC_PATTERN = /(RJ\/\d+\/\d+\/\d+|TA[O0A]\d{6,10}|TÃO\d{6,10}|TAA\d{6,10}|FQS\d{6,10}|[A-Z]{3}\d{6,10})/g;
+// Comprehensive EPIC pattern — सभी possible variations
+const EPIC_PATTERN = /(?:RJ\/\d+\/\d+\/\d+|[A-Z]{2,4}[\dOo]{6,10})/g;
 
-// ============ UPLOAD EVENTS ============
 uploadArea.addEventListener('click', () => pdfFileInput.click());
 uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
 uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
@@ -250,17 +212,17 @@ searchInput.addEventListener('input', applyFilters);
 genderFilter.addEventListener('change', applyFilters);
 wardSelect.addEventListener('change', applyFilters);
 
-// ============ HANDLE MULTIPLE PDFs ============
+// ============ MAIN ============
 async function handleMultiplePDFs(files) {
     const pdfFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
-    if (pdfFiles.length === 0) { showToast('❌ केवल PDF file', 'error'); return; }
+    if (pdfFiles.length === 0) { showToast('❌ केवल PDF', 'error'); return; }
 
     debugLog = [];
     addDebug(`📁 ${pdfFiles.length} PDF files मिलीं`);
     resultPanel.style.display = 'none';
     progressBar.classList.add('show');
     setProgress(0, '0%');
-    setStatus(`⏳ ${pdfFiles.length} PDF files पढ़ रहे हैं...`, '');
+    setStatus(`⏳ ${pdfFiles.length} PDF पढ़ रहे हैं...`, '');
 
     let allVoters = [];
     let processed = 0;
@@ -268,20 +230,17 @@ async function handleMultiplePDFs(files) {
     for (const file of pdfFiles) {
         try {
             addDebug(`\n═══ ${file.name} ═══`);
-            setStatus(`📖 ${file.name} पढ़ रहे हैं... (${processed + 1}/${pdfFiles.length})`, '');
+            setStatus(`📖 ${file.name} (${processed + 1}/${pdfFiles.length})`, '');
             const voters = await processPDF(file);
             addDebug(`   ✅ ${voters.length} voters मिले`);
             allVoters = allVoters.concat(voters);
             processed++;
-            const pct = Math.round((processed / pdfFiles.length) * 100);
-            setProgress(pct, pct + '%');
+            setProgress(Math.round((processed / pdfFiles.length) * 100), Math.round((processed / pdfFiles.length) * 100) + '%');
         } catch (err) {
             addDebug(`   ❌ Error: ${err.message}`);
             console.error(err);
         }
     }
-
-    addDebug(`\n📊 Total: ${allVoters.length} voters (before dedup)`);
 
     if (allVoters.length === 0) {
         setStatus('⚠️ कोई data नहीं मिला — "Debug Info" देखें', 'warning');
@@ -299,93 +258,126 @@ async function handleMultiplePDFs(files) {
         return true;
     });
 
-    addDebug(`📊 After dedup: ${extractedVoters.length} voters`);
+    addDebug(`📊 Total: ${extractedVoters.length} voters`);
     setProgress(100, '100%');
-    setStatus(`✅ ${extractedVoters.length} voters successfully extract हो गए!`, '');
+    setStatus(`✅ ${extractedVoters.length} voters extract हो गए!`, '');
     showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
 
     renderResult(extractedVoters);
     setTimeout(() => progressBar.classList.remove('show'), 2000);
 }
 
-// ============ PROCESS SINGLE PDF ============
+// ============ PROCESS PDF — Position-Aware ============
 async function processPDF(file) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const totalPages = pdf.numPages;
-    addDebug(`   📄 Pages: ${totalPages}`);
 
     const wardMatch = file.name.match(/Ward[\s-]*No[\s-]*0*(\d+)/i) || file.name.match(/Ward[\s-]*0*(\d+)/i);
     const ward = wardMatch ? wardMatch[1] : '1';
-    addDebug(`   🏘️ Ward (filename): ${ward}`);
+    addDebug(`   📄 Pages: ${totalPages}, Ward: ${ward}`);
 
-    let fullText = '';
+    const allVoters = [];
+
+    // Process each page separately
     for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        const items = textContent.items.map(item => ({
-            text: item.str,
-            x: item.transform[4],
-            y: item.transform[5]
-        }));
-        items.sort((a, b) => {
-            if (Math.abs(a.y - b.y) > 4) return b.y - a.y;
-            return a.x - b.x;
-        });
-        let currentY = null;
-        let currentLine = '';
-        items.forEach(item => {
-            if (currentY === null || Math.abs(item.y - currentY) > 4) {
-                if (currentLine) fullText += currentLine.trim() + ' | ';
-                currentLine = item.text;
-                currentY = item.y;
-            } else {
-                currentLine += ' ' + item.text;
-            }
-        });
-        if (currentLine) fullText += currentLine.trim() + ' | ';
-        fullText += '\n';
-    }
-    addDebug(`   📝 Text: ${fullText.length} chars`);
 
-    return extractVoters(fullText, ward);
+        // Get items with position
+        const items = textContent.items
+            .filter(item => item.str && item.str.trim().length > 0)
+            .map(item => ({
+                text: item.str.trim(),
+                x: Math.round(item.transform[4]),
+                y: Math.round(item.transform[5])
+            }));
+
+        // Group into lines (same Y within ±3 px)
+        const lines = groupIntoLines(items);
+
+        // Extract voters from this page
+        const pageVoters = extractVotersFromLines(lines, ward);
+        allVoters.push(...pageVoters);
+    }
+
+    return allVoters;
 }
 
-// ============ EXTRACT VOTERS ============
-function extractVoters(text, ward) {
+// ============ GROUP ITEMS INTO LINES ============
+function groupIntoLines(items) {
+    if (items.length === 0) return [];
+
+    // Sort by Y descending (top to bottom), then X ascending
+    items.sort((a, b) => {
+        if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
+        return a.x - b.x;
+    });
+
+    const lines = [];
+    let currentLine = [items[0]];
+
+    for (let i = 1; i < items.length; i++) {
+        const item = items[i];
+        const lastItem = currentLine[currentLine.length - 1];
+        // Same line if Y difference small
+        if (Math.abs(item.y - lastItem.y) <= 3) {
+            currentLine.push(item);
+        } else {
+            lines.push(currentLine);
+            currentLine = [item];
+        }
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+
+    // Sort each line by X, then join text
+    return lines.map(line => {
+        line.sort((a, b) => a.x - b.x);
+        return {
+            text: line.map(i => i.text).join(' '),
+            x: Math.min(...line.map(i => i.x)),
+            y: line[0].y
+        };
+    });
+}
+
+// ============ EXTRACT VOTERS FROM LINES ============
+function extractVotersFromLines(lines, ward) {
     const voters = [];
 
-    let cleanText = text
-        .replace(/Photo\s*is\s*Available/gi, ' ')
-        .replace(/Photo\s*is\s*Not\s*Available/gi, ' ')
-        .replace(/Photo\s*is/gi, ' ')
-        .replace(/\s+/g, ' ');
+    // Join all lines into one text with separator
+    const fullText = lines.map(l => l.text).join(' | ');
+    const clean = fullText.replace(/\s+/g, ' ');
 
+    // Find all EPICs
     const epics = [];
     let m;
     EPIC_PATTERN.lastIndex = 0;
-    while ((m = EPIC_PATTERN.exec(cleanText)) !== null) {
-        epics.push({ epic: m[1], index: m.index });
-    }
-    addDebug(`   🔍 EPIC IDs found: ${epics.length}`);
-
-    if (epics.length === 0) {
-        addDebug(`   ⚠️ कोई EPIC नहीं — text sample:`);
-        addDebug(`   "${cleanText.substring(0, 400)}"`);
-        return voters;
+    while ((m = EPIC_PATTERN.exec(clean)) !== null) {
+        // Validate it's a real EPIC (not a random number)
+        const ep = m[0];
+        if (ep.length >= 8 && /[A-Z]/.test(ep)) {
+            epics.push({ epic: ep, index: m.index });
+        }
     }
 
+    addDebug(`      Page EPICs: ${epics.length}`);
+
+    // For each EPIC, extract its block
     for (let i = 0; i < epics.length; i++) {
-        const startIdx = epics[i].index;
-        const endIdx = i < epics.length - 1 ? epics[i + 1].index : cleanText.length;
-        let block = cleanText.substring(startIdx, endIdx);
-        block = block.replace(epics[i].epic, '').trim();
+        const startIdx = epics[i].index + epics[i].epic.length;
+        const endIdx = i < epics.length - 1 ? epics[i + 1].index : clean.length;
+        let block = clean.substring(startIdx, endIdx);
+
+        // Limit block to prevent spillover
+        if (block.length > 300) block = block.substring(0, 300);
+
         const voter = parseVoterBlock(block, epics[i].epic, ward);
         if (voter && voter.name && voter.name.length >= 2) {
             voters.push(voter);
         }
     }
-    addDebug(`   ✅ Parsed: ${voters.length}`);
+
     return voters;
 }
 
@@ -396,54 +388,78 @@ function parseVoterBlock(block, epic, ward) {
         gender: 'पुरुष', ward: ward, village: 'सामली पठार', mobile: ''
     };
 
-    let b = block
-        .replace(/नाम\s*[:：]/g, '|@@N@@')
-        .replace(/पिता\s*का\s*नाम\s*[:：]?/g, '|@@F@@')
-        .replace(/पति\s*का\s*नाम\s*[:：]?/g, '|@@H@@')
-        .replace(/माता\s*का\s*नाम\s*[:：]?/g, '|@@M@@')
-        .replace(/अन्य\s*(?:का\s*नाम|क्रूम्मा|कुम्भम)\s*[:：]?/g, '|@@O@@')
-        .replace(/मकान\s*संख्या\s*[:：]?/g, '|@@HS@@')
-        .replace(/आयु\s*[:：]?/g, '|@@A@@')
-        .replace(/लिंग\s*[:：]?/g, '|@@G@@');
+    // Remove remaining EPIC patterns
+    let b = block.replace(EPIC_PATTERN, ' ').replace(/\|/g, ' ');
 
-    const nextAll = '\\|@@(?:N|F|H|M|O|HS|A|G)@@|$';
-    const getField = (tag) => {
-        const regex = new RegExp(tag + '\\s*([^|]+?)(?=' + nextAll + ')', 'i');
-        const match = b.match(regex);
-        return match ? match[1].trim().replace(/\s+/g, ' ') : '';
-    };
+    // ============ NAME EXTRACTION ============
+    // Pattern 1: नाम: [Hindi text] — stop at next label
+    let nameMatch = b.match(/नाम\s*[:：]\s*([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:पिता|पति|माता|अन्य|मकान|आयु|लिंग|Photo|नाम)\s*[:：]|\s*$)/);
 
-    voter.name = getField('\\|@@N@@').replace(/[|]/g, '').trim();
-    voter.father = getField('\\|@@F@@').replace(/[|]/g, '').trim();
-    if (!voter.father) voter.father = getField('\\|@@H@@').replace(/[|]/g, '').trim();
-    if (!voter.father) voter.father = getField('\\|@@M@@').replace(/[|]/g, '').trim();
-    if (!voter.father) voter.father = getField('\\|@@O@@').replace(/[|]/g, '').trim();
-
-    const hsMatch = b.match(/\|@@HS@@\s*([0-9]+|[.]|राजपुरा|देवगड\d+)/);
-    if (hsMatch) voter.house = hsMatch[1];
-
-    const ageMatch = b.match(/\|@@A@@\s*([0-9]{1,3})/);
-    if (ageMatch) voter.age = ageMatch[1];
-
-    const gMatch = b.match(/\|@@G@@\s*([\u0900-\u097F]+)/);
-    if (gMatch) {
-        const g = gMatch[1].trim();
-        if (['स्त्री', 'महिला', 'बी', 'खी', 'छी', 'ख्री', 'ब्री', 'द्वितीय'].includes(g)) {
-            voter.gender = 'महिला';
-        } else if (g === 'पुरुष' || g === 'पुरूष') {
-            voter.gender = 'पुरुष';
-        } else {
-            voter.gender = g;
-        }
+    // Pattern 2: नाम [Hindi text] (without colon)
+    if (!nameMatch) {
+        nameMatch = b.match(/नाम\s+([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:पिता|पति|माता|अन्य|मकान|आयु|लिंग|Photo|नाम)\s*[:：]|\s*$)/);
     }
 
-    voter.name = voter.name.replace(/[|]/g, '').replace(/\s+/g, ' ').trim();
-    voter.father = voter.father.replace(/[|]/g, '').replace(/\s+/g, ' ').trim();
+    if (nameMatch) voter.name = nameMatch[1].trim();
 
+    // ============ FATHER EXTRACTION ============
+    let fatherMatch = b.match(/पिता\s*का\s*नाम\s*[:：]?\s*([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:माता|अन्य|मकान|आयु|लिंग|Photo|नाम|पिता|पति)\s*[:：]|\s*$)/);
+    if (fatherMatch) voter.father = fatherMatch[1].trim();
+
+    // ============ HUSBAND EXTRACTION ============
+    if (!voter.father) {
+        let husbandMatch = b.match(/पति\s*का\s*नाम\s*[:：]?\s*([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:माता|अन्य|मकान|आयु|लिंग|Photo|नाम|पिता|पति)\s*[:：]|\s*$)/);
+        if (husbandMatch) voter.father = husbandMatch[1].trim();
+    }
+
+    // ============ MOTHER EXTRACTION ============
+    if (!voter.father) {
+        let motherMatch = b.match(/माता\s*का\s*नाम\s*[:：]?\s*([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:अन्य|मकान|आयु|लिंग|Photo|नाम)\s*[:：]|\s*$)/);
+        if (motherMatch) voter.father = motherMatch[1].trim();
+    }
+
+    // ============ OTHER EXTRACTION ============
+    if (!voter.father) {
+        let otherMatch = b.match(/(?:अन्य|अन्य\s*का\s*नाम|अन्य\s*क्रूम्मा)\s*[:：]?\s*([\u0900-\u097F][\u0900-\u097F\s]{0,40}?)(?=\s*(?:मकान|आयु|लिंग|Photo|नाम)\s*[:：]|\s*$)/);
+        if (otherMatch) voter.father = otherMatch[1].trim();
+    }
+
+    // ============ HOUSE ============
+    let houseMatch = b.match(/मकान\s*संख्या\s*[:：]?\s*([0-9]+|\.)/);
+    if (houseMatch) voter.house = houseMatch[1];
+
+    // ============ AGE ============
+    let ageMatch = b.match(/आयु\s*[:：]?\s*([0-9]{1,3})/);
+    if (ageMatch) voter.age = ageMatch[1];
+
+    // ============ GENDER ============
+    let genderMatch = b.match(/लिंग\s*[:：]?\s*([\u0900-\u097F]+)/);
+    if (genderMatch) {
+        const g = genderMatch[1].trim();
+        if (/^(स्त्री|महिला|बी|खी|छी|ख्री|ब्री)/.test(g)) voter.gender = 'महिला';
+        else if (/^(पुरुष|पुरूष)/.test(g)) voter.gender = 'पुरुष';
+        else voter.gender = g.split(/\s/)[0];
+    }
+
+    // Clean
+    voter.name = cleanField(voter.name);
+    voter.father = cleanField(voter.father);
+
+    // Validation: name should be Hindi text, not numbers/symbols
     if (voter.name.length < 2) return null;
-    if (/^[0-9]+$/.test(voter.name)) return null;
+    if (/^[0-9.\s]+$/.test(voter.name)) return null;
 
     return voter;
+}
+
+function cleanField(str) {
+    if (!str) return '';
+    return str
+        .replace(/Photo\s*is\s*(?:Not\s*)?Available/gi, '')
+        .replace(/\bPhoto\b/gi, '')
+        .replace(/\b(?:is|Available)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 // ============ RENDER ============
@@ -464,9 +480,9 @@ function renderResult(voters) {
     `;
 
     columnInfo.innerHTML = `
-        <h4>📋 Extracted Columns (हर field अलग column में)</h4>
+        <h4>📋 Extracted Columns</h4>
         <span class="col ok">EPIC ID</span>
-        <span class="col ok">नाम</span>
+        <span class="col ${voters.some(v => v.name) ? 'ok' : 'miss'}">नाम</span>
         <span class="col ${withFather > 0 ? 'ok' : 'miss'}">पिता/पति</span>
         <span class="col ${voters.some(v => v.house) ? 'ok' : 'miss'}">मकान</span>
         <span class="col ${voters.some(v => v.age) ? 'ok' : 'miss'}">आयु</span>
@@ -493,7 +509,7 @@ function renderResult(voters) {
         });
     });
 
-    wardSelect.innerHTML = '<option value="">सभी Wards</option>';
+    wardSelect.innerHTML = '<option value="">सभी</option>';
     wards.forEach(w => {
         wardSelect.innerHTML += `<option value="${w}">वार्ड ${w}</option>`;
     });
@@ -501,7 +517,6 @@ function renderResult(voters) {
     renderTable(voters);
 }
 
-// ============ RENDER TABLE WITH EDITABLE CELLS ============
 function renderTable(voters) {
     previewBody.innerHTML = '';
     const slice = voters.slice(0, 200);
@@ -510,32 +525,27 @@ function renderTable(voters) {
         return;
     }
     slice.forEach((v) => {
-        // Find real index in extractedVoters
         const realIdx = extractedVoters.indexOf(v);
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${realIdx + 1}</td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="epic" value="${escapeHtml(v.epic || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="name" value="${escapeHtml(v.name || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="father" value="${escapeHtml(v.father || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="house" value="${escapeHtml(v.house || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="age" value="${escapeHtml(v.age || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="gender" value="${escapeHtml(v.gender || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="ward" value="${escapeHtml(v.ward || '')}" /></td>
-            <td><input class="edit-input" data-idx="${realIdx}" data-field="village" value="${escapeHtml(v.village || '')}" /></td>
-            <td><input class="edit-input mobile" data-idx="${realIdx}" data-field="mobile" placeholder="मोबाइल..." value="${escapeHtml(v.mobile || '')}" /></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="epic" value="${escapeHtml(v.epic || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="name" value="${escapeHtml(v.name || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="father" value="${escapeHtml(v.father || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="house" value="${escapeHtml(v.house || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="age" value="${escapeHtml(v.age || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="gender" value="${escapeHtml(v.gender || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="ward" value="${escapeHtml(v.ward || '')}"></td>
+            <td><input class="edit-input" data-idx="${realIdx}" data-field="village" value="${escapeHtml(v.village || '')}"></td>
+            <td><input class="edit-input mobile" data-idx="${realIdx}" data-field="mobile" placeholder="मोबाइल..." value="${escapeHtml(v.mobile || '')}"></td>
         `;
         previewBody.appendChild(row);
     });
-
-    // Attach edit listeners
     previewBody.querySelectorAll('.edit-input').forEach(input => {
         input.addEventListener('input', (e) => {
             const idx = parseInt(e.target.dataset.idx);
             const field = e.target.dataset.field;
-            if (extractedVoters[idx]) {
-                extractedVoters[idx][field] = e.target.value;
-            }
+            if (extractedVoters[idx]) extractedVoters[idx][field] = e.target.value;
         });
     });
 }
@@ -558,43 +568,23 @@ function applyFilters() {
     renderTable(filtered);
 }
 
-// ============ EXCEL DOWNLOAD (Mobile खाली) ============
+// ============ EXCEL ============
 function downloadExcel() {
     if (extractedVoters.length === 0) { showToast('❌ कोई data नहीं', 'error'); return; }
     const data = extractedVoters.map((v, i) => ({
-        'क्र.सं.': i + 1,
-        'EPIC ID': v.epic || '',
-        'नाम': v.name || '',
-        'पिता/पति का नाम': v.father || '',
-        'मकान संख्या': v.house || '',
-        'आयु': v.age || '',
-        'लिंग': v.gender || '',
-        'वार्ड': v.ward || '',
-        'गाँव': v.village || '',
-        'मोबाइल नंबर': v.mobile || ''
+        'क्र.सं.': i + 1, 'EPIC ID': v.epic || '', 'नाम': v.name || '',
+        'पिता/पति का नाम': v.father || '', 'मकान संख्या': v.house || '',
+        'आयु': v.age || '', 'लिंग': v.gender || '', 'वार्ड': v.ward || '',
+        'गाँव': v.village || '', 'मोबाइल नंबर': v.mobile || ''
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws['!cols'] = COLUMNS.map(c => ({ wch: c.width }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Voter List');
-    const date = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `Voter_List_All_Wards_${date}.xlsx`);
-    showToast(`✅ ${extractedVoters.length} voters की Excel download हो गई`, 'success');
+    XLSX.writeFile(wb, `Voter_List_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    showToast(`✅ ${extractedVoters.length} voters Excel में`, 'success');
 }
 
-// ============ EXCEL DOWNLOAD (Mobile भरा हुआ) ============
-function downloadWithMobileExcel() {
-    if (extractedVoters.length === 0) { showToast('❌ कोई data नहीं', 'error'); return; }
-    const filled = extractedVoters.filter(v => v.mobile && v.mobile.trim() !== '').length;
-    if (filled === 0) {
-        showToast('⚠️ पहले मोबाइल नंबर भरें', 'warning');
-        return;
-    }
-    downloadExcel();
-    showToast(`✅ ${filled} मोबाइल नंबर के साथ Excel download हो गई`, 'success');
-}
-
-// ============ WARD-WISE EXCEL ============
 function downloadWardWiseExcel() {
     if (extractedVoters.length === 0) { showToast('❌ कोई data नहीं', 'error'); return; }
     const wb = XLSX.utils.book_new();
@@ -611,46 +601,40 @@ function downloadWardWiseExcel() {
     XLSX.utils.book_append_sheet(wb, allWs, 'All Wards');
 
     wards.forEach(w => {
-        const wardVoters = extractedVoters.filter(v => v.ward === w);
-        const wardData = wardVoters.map((v, i) => ({
+        const wv = extractedVoters.filter(v => v.ward === w);
+        const wd = wv.map((v, i) => ({
             'क्र.सं.': i + 1, 'EPIC ID': v.epic || '', 'नाम': v.name || '',
             'पिता/पति का नाम': v.father || '', 'मकान संख्या': v.house || '',
             'आयु': v.age || '', 'लिंग': v.gender || '', 'वार्ड': v.ward || '',
             'गाँव': v.village || '', 'मोबाइल नंबर': v.mobile || ''
         }));
-        const ws = XLSX.utils.json_to_sheet(wardData);
+        const ws = XLSX.utils.json_to_sheet(wd);
         ws['!cols'] = COLUMNS.map(c => ({ wch: c.width }));
         XLSX.utils.book_append_sheet(wb, ws, `Ward ${w}`);
     });
 
-    const date = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `Voter_List_WardWise_${date}.xlsx`);
-    showToast(`✅ ${wards.length} Ward-wise Excel download हो गई`, 'success');
+    XLSX.writeFile(wb, `Voter_List_WardWise_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    showToast(`✅ ${wards.length} Ward-wise Excel`, 'success');
 }
 
-// ============ CSV DOWNLOAD ============
 function downloadCSV() {
     if (extractedVoters.length === 0) { showToast('❌ कोई data नहीं', 'error'); return; }
     let csv = 'क्र.सं.,EPIC ID,नाम,पिता/पति का नाम,मकान संख्या,आयु,लिंग,वार्ड,गाँव,मोबाइल नंबर\n';
     extractedVoters.forEach((v, i) => {
-        const row = [
-            i + 1,
-            v.epic || '', v.name || '', v.father || '', v.house || '',
-            v.age || '', v.gender || '', v.ward || '', v.village || '', v.mobile || ''
-        ];
-        csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+        const row = [i + 1, v.epic || '', v.name || '', v.father || '', v.house || '',
+            v.age || '', v.gender || '', v.ward || '', v.village || '', v.mobile || ''];
+        csv += row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',') + '\n';
     });
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Voter_List_All_Wards_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `Voter_List_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('✅ CSV download हो गई', 'success');
+    showToast('✅ CSV download', 'success');
 }
 
-// ============ HELPERS ============
 function clearAll() {
     extractedVoters = [];
     activeWardFilter = 'all';
@@ -665,28 +649,18 @@ function clearAll() {
     showToast('❌ Cleared', 'info');
 }
 
-function setProgress(pct, text) {
-    progressFill.style.width = pct + '%';
-    progressFill.textContent = text || pct + '%';
-}
-
+function setProgress(pct, text) { progressFill.style.width = pct + '%'; progressFill.textContent = text || pct + '%'; }
 function setStatus(msg, type) {
-    statusEl.textContent = msg;
-    statusEl.className = 'status';
+    statusEl.textContent = msg; statusEl.className = 'status';
     if (msg) statusEl.classList.add('show');
     if (type) statusEl.classList.add(type);
 }
-
 function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-    }[m]));
+    return String(str ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
-
 function showToast(msg, type = 'success') {
     const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    t.textContent = msg;
+    t.className = `toast ${type}`; t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 4000);
 }
