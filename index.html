@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voter PDF → Excel Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,"Noto Sans Devanagari",sans-serif;}
+body{background:#f4f7f5;color:#17231b;padding:20px;}
+.container{max-width:1200px;margin:0 auto;}
+h1{color:#075e36;margin-bottom:10px;font-size:26px;}
+.sub{color:#66736b;margin-bottom:25px;font-size:14px;}
+.panel{background:white;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.08);margin-bottom:20px;}
+.upload-area{border:3px dashed #10a95b;background:#f0faf4;padding:50px 20px;text-align:center;border-radius:15px;cursor:pointer;transition:all 0.3s;}
+.upload-area:hover{background:#d9f2e3;border-color:#075e36;}
+.upload-area.dragover{background:#d9f2e3;border-color:#075e36;transform:scale(1.01);}
+.upload-area .icon{font-size:70px;margin-bottom:15px;}
+.upload-area h2{color:#075e36;margin-bottom:10px;}
+.upload-area p{color:#66736b;font-size:14px;}
+.btn{background:#087b40;color:white;border:0;padding:13px 22px;border-radius:9px;cursor:pointer;margin:8px 5px 0 0;font-size:15px;font-weight:600;}
+.btn:hover{background:#075e36;}
+.btn.blue{background:#1976d2;}
+.btn.blue:hover{background:#1565c0;}
+.btn.purple{background:#7b1fa2;}
+.btn.purple:hover{background:#6a1b9a;}
+.btn.red{background:#c62828;}
+.btn.secondary{background:#e8f4ed;color:#075e36;}
+.btn:disabled{background:#ccc;cursor:not-allowed;}
+.progress-bar{width:100%;height:25px;background:#e0e8e3;border-radius:12px;overflow:hidden;margin:20px 0;display:none;}
+.progress-bar.show{display:block;}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,#075e36,#10a95b);width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;}
+.status{padding:15px;background:#e8f4ed;border-radius:10px;margin-top:15px;color:#075e36;font-weight:600;display:none;}
+.status.show{display:block;}
+.status.error{background:#ffebee;color:#c62828;}
+.status.warning{background:#fff8e1;color:#e69b00;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0;}
+.stat-box{background:linear-gradient(135deg,#075e36,#10a95b);color:white;padding:18px;border-radius:12px;text-align:center;}
+.stat-box .num{font-size:32px;font-weight:bold;}
+.stat-box .lbl{font-size:13px;opacity:0.9;margin-top:5px;}
+.table-container{max-height:600px;overflow:auto;border:1px solid #ddd;border-radius:10px;margin-top:15px;}
+table{width:100%;border-collapse:collapse;min-width:1000px;}
+th{background:#075e36;color:white;padding:12px 8px;text-align:left;font-size:13px;position:sticky;top:0;z-index:5;}
+td{padding:10px 8px;border-bottom:1px solid #e0e8e3;font-size:13px;}
+tr:nth-child(even){background:#f9fdfb;}
+tr:hover{background:#e8f4ed;}
+.badge{padding:4px 10px;border-radius:20px;background:#e8f5ed;color:#087b40;font-size:11px;font-weight:600;}
+.badge.epic{background:#fff3e0;color:#e65100;font-family:monospace;}
+.column-info{background:#f0faf4;padding:18px;border-radius:12px;border-left:5px solid #10a95b;margin:15px 0;}
+.column-info h4{color:#075e36;margin-bottom:12px;}
+.column-info .col{display:inline-block;padding:6px 14px;background:white;border-radius:20px;margin:4px;font-size:13px;border:1px solid #c8e6d4;}
+.column-info .col.miss{background:#fff8e1;border-color:#ffcc80;color:#e65100;}
+.column-info .col.ok::before{content:"✅ ";}
+.column-info .col.miss::before{content:"⚠️ ";}
+.actions{margin:15px 0;display:flex;gap:10px;flex-wrap:wrap;}
+.toast{position:fixed;bottom:20px;right:20px;padding:15px 25px;border-radius:10px;color:white;font-weight:bold;z-index:99999;box-shadow:0 4px 15px rgba(0,0,0,0.3);animation:slideIn 0.5s;}
+.toast.success{background:#075e36;}
+.toast.error{background:#c62828;}
+.toast.warning{background:#e69b00;}
+.toast.info{background:#1976d2;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.help{background:#e3f2fd;padding:15px;border-radius:10px;margin-top:15px;border-left:4px solid #1976d2;font-size:13px;line-height:1.6;}
+.help strong{color:#1565c0;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>📄 Voter PDF → Excel Converter</h1>
+<p class="sub">पंचायत चुनाव निर्वाचक नामावली PDF को Excel में बदलें (Column-wise)</p>
+
+<div class="panel">
+<div class="upload-area" id="uploadArea">
+<div class="icon">📄</div>
+<h2>PDF File यहाँ Drop करें</h2>
+<p>या click करके select करें</p>
+<input type="file" id="pdfFileInput" accept=".pdf" style="display:none;">
+</div>
+
+<div class="progress-bar" id="progressBar">
+<div class="fill" id="progressFill">0%</div>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="help">
+<strong>📌 Supported PDF Format:</strong><br>
+✅ पंचायत चुनाव निर्वाचक नामावली (Voter List)<br>
+✅ Format: Box Number + EPIC ID + Photo + नाम + पिता/पति + मकान + आयु + लिंग<br>
+✅ Digital PDF (text-based) — Scanned PDF काम नहीं करेगा
+</div>
+</div>
+
+<div class="panel" id="resultPanel" style="display:none;">
+<h2 style="color:#075e36;margin-bottom:15px;">📊 Extraction Result</h2>
+<div class="stats" id="stats"></div>
+
+<div class="column-info" id="columnInfo"></div>
+
+<div class="actions">
+<button class="btn blue" onclick="downloadExcel()">📥 Excel Download (.xlsx)</button>
+<button class="btn secondary" onclick="downloadCSV()">📄 CSV Download</button>
+<button class="btn red" onclick="clearAll()">❌ Clear</button>
+</div>
+
+<h3 style="color:#075e36;margin:20px 0 10px;">👁️ Preview (First 50 rows)</h3>
+<div class="table-container">
+<table id="previewTable">
+<thead>
+<tr>
+<th>क्र.</th>
+<th>EPIC ID</th>
+<th>नाम</th>
+<th>पिता/पति</th>
+<th>मकान</th>
+<th>आयु</th>
+<th>लिंग</th>
+<th>वार्ड</th>
+<th>गाँव</th>
+</tr>
+</thead>
+<tbody id="previewBody"></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+// PDF.js Worker
+// ============================================================
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ============================================================
+// DOM
+// ============================================================
+const uploadArea = document.getElementById('uploadArea');
+const pdfFileInput = document.getElementById('pdfFileInput');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const statusEl = document.getElementById('status');
+const resultPanel = document.getElementById('resultPanel');
+const statsEl = document.getElementById('stats');
+const columnInfo = document.getElementById('columnInfo');
+const previewBody = document.getElementById('previewBody');
+
+let extractedVoters = [];
+let pdfMeta = {};
+
+// ============================================================
+// UPLOAD EVENTS
+// ============================================================
+uploadArea.addEventListener('click', () => pdfFileInput.click());
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handlePDF(e.dataTransfer.files[0]);
+});
+pdfFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) handlePDF(e.target.files[0]);
+});
+
+// ============================================================
+// MAIN PDF HANDLER
+// ============================================================
+async function handlePDF(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showToast('❌ केवल PDF file', 'error');
+        return;
+    }
+
+    resultPanel.style.display = 'none';
+    progressBar.classList.add('show');
+    setProgress(5, '5%');
+    setStatus('⏳ PDF पढ़ रहे हैं...', '');
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+        
+        setStatus(`📖 ${totalPages} pages मिले। Text extract हो रहा है...`, '');
+
+        let fullText = '';
+        
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            
+            // Extract text with position info
+            const items = textContent.items.map(item => ({
+                text: item.str,
+                x: item.transform[4],
+                y: item.transform[5]
+            }));
+            
+            // Sort by Y (top to bottom), then X (left to right)
+            items.sort((a, b) => {
+                if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
+                return a.x - b.x;
+            });
+            
+            // Group into lines
+            let currentY = null;
+            let currentLine = '';
+            items.forEach(item => {
+                if (currentY === null || Math.abs(item.y - currentY) > 3) {
+                    if (currentLine) fullText += currentLine.trim() + '\n';
+                    currentLine = item.text + ' ';
+                    currentY = item.y;
+                } else {
+                    currentLine += item.text + ' ';
+                }
+            });
+            if (currentLine) fullText += currentLine.trim() + '\n';
+            fullText += '\n--- PAGE BREAK ---\n';
+            
+            const pct = Math.round((pageNum / totalPages) * 60) + 5;
+            setProgress(pct, pct + '%');
+        }
+
+        setStatus('🔍 Data parse हो रहा है (column-wise)...', '');
+        setProgress(75, '75%');
+
+        // Extract metadata
+        pdfMeta = extractMeta(fullText);
+        
+        // Extract voters
+        extractedVoters = extractVoters(fullText, pdfMeta);
+
+        if (extractedVoters.length === 0) {
+            setStatus('⚠️ कोई data नहीं मिला। PDF format check करें।', 'warning');
+            setProgress(100, '0 found');
+            showToast('⚠️ कोई data नहीं मिला', 'warning');
+            return;
+        }
+
+        setProgress(100, '100%');
+        setStatus(`✅ ${extractedVoters.length} voters successfully extract हो गए!`, '');
+        showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
+
+        // Show result
+        renderResult(extractedVoters);
+
+    } catch (err) {
+        console.error(err);
+        setStatus('❌ Error: ' + err.message, 'error');
+        showToast('❌ PDF read error', 'error');
+    } finally {
+        setTimeout(() => progressBar.classList.remove('show'), 2000);
+    }
+}
+
+// ============================================================
+// EXTRACT META (Ward, Village, etc.)
+// ============================================================
+function extractMeta(text) {
+    const meta = {
+        district: '',
+        panchayat: '',
+        gramPanchayat: '',
+        ward: '6',
+        village: ''
+    };
+
+    const districtMatch = text.match(/जिला(?:परिषद)?\s*का\s*नाम\s*[:\-]?\s*([\u0900-\u097F]+)/);
+    if (districtMatch) meta.district = districtMatch[1].trim();
+
+    const gpMatch = text.match(/ग्राम\s*पंचायत\s*[:\-]?\s*([\u0900-\u097F\s]+?)(?:\n|वार्ड|$)/);
+    if (gpMatch) meta.gramPanchayat = gpMatch[1].trim();
+
+    const wardMatch = text.match(/वार्ड\s*क्रमांक\s*[:\-]?\s*(\d+)/);
+    if (wardMatch) meta.ward = wardMatch[1];
+
+    // Village: look for pattern like "उन्देडी,देवगढ"
+    const villageMatch = text.match(/\n\s*([\u0900-\u097F]+,[\u0900-\u097F]+)\s*\n/);
+    if (villageMatch) meta.village = villageMatch[1].trim();
+    else {
+        const vMatch2 = text.match(/([\u0900-\u097F]{3,20}),\s*([\u0900-\u097F]{3,20})/);
+        if (vMatch2) meta.village = vMatch2[0].trim();
+    }
+
+    if (!meta.village) meta.village = meta.gramPanchayat || 'सामली पठार';
+
+    console.log('Meta extracted:', meta);
+    return meta;
+}
+
+// ============================================================
+// EXTRACT VOTERS — Line by Line Parsing
+// ============================================================
+function extractVoters(text, meta) {
+    const voters = [];
+
+    // Clean text
+    let cleanText = text.replace(/--- PAGE BREAK ---/g, '\n');
+    cleanText = cleanText.replace(/Photo\s*is\s*Available/gi, '');
+    cleanText = cleanText.replace(/Photo\s*is\s*Not\s*Available/gi, '');
+    cleanText = cleanText.replace(/\s+/g, ' ');
+    
+    // Normalize newlines: split by common patterns
+    cleanText = cleanText
+        .replace(/नाम\s*[:：]/g, '\n@@NAME@@')
+        .replace(/पिता\s*का\s*नाम\s*[:：]?/g, '\n@@FATHER@@')
+        .replace(/पति\s*का\s*नाम\s*[:：]?/g, '\n@@HUSBAND@@')
+        .replace(/मकान\s*संख्या\s*[:：]?/g, '\n@@HOUSE@@')
+        .replace(/आयु\s*[:：]?/g, '\n@@AGE@@')
+        .replace(/लिंग\s*[:：]?/g, '\n@@GENDER@@');
+
+    // Split into record chunks by EPIC ID pattern
+    // EPIC patterns: TAO0988253, RJ/17/127/009413, FQS1473164
+    const epicRegex = /(RJ\/\d+\/\d+\/\d+|[A-Z]{3}\d{6,10})/g;
+    
+    // Find all EPICs with their positions
+    const positions = [];
+    let m;
+    while ((m = epicRegex.exec(cleanText)) !== null) {
+        positions.push({ epic: m[1], index: m.index });
+    }
+
+    console.log(`Found ${positions.length} EPIC IDs`);
+
+    // Process each EPIC block
+    for (let i = 0; i < positions.length; i++) {
+        const startIdx = positions[i].index;
+        const endIdx = i < positions.length - 1 ? positions[i + 1].index : cleanText.length;
+        const block = cleanText.substring(startIdx, endIdx);
+        
+        const voter = parseBlock(block, positions[i].epic, meta);
+        if (voter && voter.name) {
+            voters.push(voter);
+        }
+    }
+
+    // Fallback: if no EPIC matched, parse by NAME blocks
+    if (voters.length === 0) {
+        console.log('Trying name-based parsing...');
+        const nameBlocks = cleanText.split('@@NAME@@');
+        nameBlocks.forEach((block, i) => {
+            if (i === 0) return;
+            const nextIdx = block.indexOf('@@NAME@@');
+            const relevant = nextIdx > 0 ? block.substring(0, nextIdx) : block;
+            const voter = parseBlock(relevant, '', meta);
+            if (voter && voter.name) voters.push(voter);
+        });
+    }
+
+    // Remove duplicates
+    const seen = new Set();
+    const unique = voters.filter(v => {
+        const key = (v.epic || '') + '|' + v.name + '|' + v.father;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    // Auto-assign EPIC if missing
+    unique.forEach((v, i) => {
+        if (!v.epic) {
+            v.epic = 'RJP' + String(v.ward).padStart(2, '0') + String(i + 1).padStart(6, '0');
+        }
+    });
+
+    console.log(`Parsed ${unique.length} unique voters`);
+    return unique;
+}
+
+// ============================================================
+// PARSE ONE BLOCK
+// ============================================================
+function parseBlock(block, epic, meta) {
+    const voter = {
+        epic: epic || '',
+        name: '',
+        father: '',
+        house: '',
+        age: '',
+        gender: 'पुरुष',
+        ward: meta.ward || '1',
+        village: meta.village || '',
+        mobile: ''
+    };
+
+    // NAME
+    const nameMatch = block.match(/@@NAME@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
+    if (nameMatch) {
+        voter.name = nameMatch[1].trim().replace(/\s+/g, ' ');
+    }
+
+    // FATHER (पिता का नाम)
+    const fatherMatch = block.match(/@@FATHER@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
+    if (fatherMatch) {
+        voter.father = fatherMatch[1].trim().replace(/\s+/g, ' ');
+    }
+
+    // HUSBAND (पति का नाम)
+    if (!voter.father) {
+        const husbandMatch = block.match(/@@HUSBAND@@\s*([\u0900-\u097F\s]+?)(?=@@|$)/);
+        if (husbandMatch) {
+            voter.father = husbandMatch[1].trim().replace(/\s+/g, ' ');
+        }
+    }
+
+    // HOUSE
+    const houseMatch = block.match(/@@HOUSE@@\s*([0-9]+)/);
+    if (houseMatch) voter.house = houseMatch[1];
+
+    // AGE
+    const ageMatch = block.match(/@@AGE@@\s*([0-9]+)/);
+    if (ageMatch) voter.age = ageMatch[1];
+
+    // GENDER
+    const genderMatch = block.match(/@@GENDER@@\s*(स्त्री|पुरुष|महिला|अन्य)/);
+    if (genderMatch) {
+        const g = genderMatch[1];
+        if (g === 'स्त्री' || g === 'महिला') voter.gender = 'महिला';
+        else if (g === 'पुरुष') voter.gender = 'पुरुष';
+        else voter.gender = g;
+    }
+
+    return voter;
+}
+
+// ============================================================
+// RENDER RESULT
+// ============================================================
+function renderResult(voters) {
+    resultPanel.style.display = 'block';
+
+    // Stats
+    const male = voters.filter(v => v.gender === 'पुरुष').length;
+    const female = voters.filter(v => v.gender === 'महिला').length;
+    const withEpic = voters.filter(v => v.epic && v.epic.length > 5).length;
+    const withFather = voters.filter(v => v.father).length;
+
+    statsEl.innerHTML = `
+        <div class="stat-box"><div class="num">${voters.length}</div><div class="lbl">कुल Voters</div></div>
+        <div class="stat-box"><div class="num">${male}</div><div class="lbl">पुरुष</div></div>
+        <div class="stat-box"><div class="num">${female}</div><div class="lbl">महिला</div></div>
+        <div class="stat-box"><div class="num">${withEpic}</div><div class="lbl">EPIC ID</div></div>
+        <div class="stat-box"><div class="num">${withFather}</div><div class="lbl">पिता/पति</div></div>
+    `;
+
+    // Column info
+    columnInfo.innerHTML = `
+        <h4>📋 Extracted Columns</h4>
+        <span class="col ok">EPIC ID</span>
+        <span class="col ok">नाम (Name)</span>
+        <span class="col ${withFather > 0 ? 'ok' : 'miss'}">पिता/पति</span>
+        <span class="col ${voters.some(v => v.house) ? 'ok' : 'miss'}">मकान संख्या</span>
+        <span class="col ${voters.some(v => v.age) ? 'ok' : 'miss'}">आयु</span>
+        <span class="col ok">लिंग</span>
+        <span class="col ok">वार्ड (${pdfMeta.ward || '1'})</span>
+        <span class="col ok">गाँव (${pdfMeta.village || '-'})</span>
+        <span class="col miss">मोबाइल (खाली)</span>
+    `;
+
+    // Preview table
+    previewBody.innerHTML = '';
+    voters.slice(0, 50).forEach((v, i) => {
+        previewBody.innerHTML += `<tr>
+            <td>${i + 1}</td>
+            <td><span class="badge epic">${escapeHtml(v.epic || '-')}</span></td>
+            <td><strong>${escapeHtml(v.name)}</strong></td>
+            <td>${escapeHtml(v.father || '-')}</td>
+            <td>${escapeHtml(v.house || '-')}</td>
+            <td>${escapeHtml(v.age || '-')}</td>
+            <td>${escapeHtml(v.gender || '-')}</td>
+            <td>${escapeHtml(v.ward)}</td>
+            <td>${escapeHtml(v.village || '-')}</td>
+        </tr>`;
+    });
+}
+
+// ============================================================
+// EXCEL DOWNLOAD (Column-wise)
+// ============================================================
+function downloadExcel() {
+    if (extractedVoters.length === 0) {
+        showToast('❌ कोई data नहीं', 'error');
+        return;
+    }
+
+    // Create column-wise data
+    const data = extractedVoters.map((v, i) => ({
+        'क्र.सं.': i + 1,
+        'EPIC ID': v.epic || '',
+        'नाम': v.name || '',
+        'पिता/पति का नाम': v.father || '',
+        'मकान संख्या': v.house || '',
+        'आयु': v.age || '',
+        'लिंग': v.gender || '',
+        'वार्ड': v.ward || '',
+        'गाँव': v.village || '',
+        'मोबाइल नंबर': v.mobile || ''
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Set column widths
+    ws['!cols'] = [
+        { wch: 7 },   // क्र.सं.
+        { wch: 16 },  // EPIC ID
+        { wch: 25 },  // नाम
+        { wch: 25 },  // पिता/पति
+        { wch: 12 },  // मकान
+        { wch: 7 },   // आयु
+        { wch: 10 },  // लिंग
+        { wch: 8 },   // वार्ड
+        { wch: 20 },  // गाँव
+        { wch: 15 }   // मोबाइल
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Voter List');
+
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `Voter_List_Ward${pdfMeta.ward || '6'}_${date}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
+    showToast('✅ Excel download हो गई', 'success');
+}
+
+// ============================================================
+// CSV DOWNLOAD
+// ============================================================
+function downloadCSV() {
+    if (extractedVoters.length === 0) {
+        showToast('❌ कोई data नहीं', 'error');
+        return;
+    }
+
+    let csv = 'क्र.सं.,EPIC ID,नाम,पिता/पति का नाम,मकान संख्या,आयु,लिंग,वार्ड,गाँव,मोबाइल नंबर\n';
+    extractedVoters.forEach((v, i) => {
+        csv += `${i + 1},"${v.epic || ''}","${v.name || ''}","${v.father || ''}","${v.house || ''}","${v.age || ''}","${v.gender || ''}","${v.ward || ''}","${v.village || ''}","${v.mobile || ''}"\n`;
+    });
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Voter_List_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ CSV download हो गई', 'success');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function clearAll() {
+    extractedVoters = [];
+    pdfMeta = {};
+    resultPanel.style.display = 'none';
+    pdfFileInput.value = '';
+    setStatus('', '');
+    showToast('❌ Cleared', 'info');
+}
+
+function setProgress(pct, text) {
+    progressFill.style.width = pct + '%';
+    progressFill.textContent = text || pct + '%';
+}
+
+function setStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status';
+    if (msg) statusEl.classList.add('show');
+    if (type) statusEl.classList.add(type);
+}
+
+function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[m]));
+}
+
+function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>
